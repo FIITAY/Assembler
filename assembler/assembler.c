@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include "firstLoop.h"
 #include "secondLoop.h"
 
@@ -5,16 +7,45 @@
  *This is the main file that will contain the main loops and main function calls.
  */
 
-void fileAssembler(char *);
+void fileCompiler(char *);
 
 int main(int argc, char *argv[])
 {
-    /* code */
+    if(argc == 1) /*check if there is more arguments then the program name*/
+    {
+        /*the program didnt got any file to compile return error messege*/
+        printf("\nthere wasnt any files parsed in the arguments to compile.\n");
+    }
+    else
+    {
+        /*got arguments, loop throw them*/
+        int i; /*used as index for the array*/
+        for(i = 1; i<argc; ++i)
+        {
+            
+            /*start the compile of the file with the made name*/
+            fileCompiler(fileName);
+        }
+    }
     return 0;
 }
 
 /*this function gets a file name and make the first and second loops*/
-void fileAssembler(char *fileName)
+void fileCompiler(char *fileName)
 {
+    char *fileWithExtention = (char *)maloc(strlen(fileName) + 3); /*malloc place for the file name*/
+    int retFirst, retSecond;
+    strcpy(fileWithExtention, fileName); /*copy the file name*/
+    strcat(fileWithExtention, ".as"); /*add the end .as to the file name at the end of the string*/
 
+    /*open the file*/
+    FILE *fp = fopen(fileWithExtention, "r");
+    if(fp == NULL)
+    {
+        printf("can't open file: %s\n", fileWithExtention);
+        return ;
+    }
+    /*file open success*/
+    retFirst  = doFirstPass(fp);
+    retSecond = doSecondPass(fp);
 }
