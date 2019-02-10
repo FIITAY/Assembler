@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
         {
             
             /*start the compile of the file with the made name*/
-            fileCompiler(fileName);
+            fileCompiler(argv[i]);
         }
     }
     return 0;
@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 void fileCompiler(char *fileName)
 {
     char *fileWithExtention = (char *)maloc(strlen(fileName) + 3); /*malloc place for the file name*/
-    int retFirst, retSecond;
+    int ret;
     strcpy(fileWithExtention, fileName); /*copy the file name*/
     strcat(fileWithExtention, ".as"); /*add the end .as to the file name at the end of the string*/
 
@@ -46,6 +46,14 @@ void fileCompiler(char *fileName)
         return ;
     }
     /*file open success*/
-    retFirst  = doFirstPass(fp);
-    retSecond = doSecondPass(fp);
+    ret  = doFirstPass(fp);
+    if(ret == SUCCESS)/*do the secondLoop only if the first pass returned SUCCESS*/
+        ret  = doSecondPass(fp);
+
+    if(ret == SUCCESS)
+    {
+        /*all of comile finished without errors, make output files*/
+    }/*if there was a errors dont make output files*/
+
+    /*finished the compile of the code*/
 }
