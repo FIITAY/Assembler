@@ -6,35 +6,84 @@
 #include <stdlib.h>
 #define NOT_FOUND -1
 #define LABEL_MARKER ':'
+#define ERROR_RETURN -10
 
-enum lineKind {K_DATA, K_STRING, K_EXTERN, K_ENTERY, K_ELSE};
+
 
 int findChar(char *, char);
 int checkLable(char *, int, table **);
 enum lineKind checkKind(char *, int);
 
 
-int parseLine(char *line, word **, table **symbolTable)
+int parseLine(char *line, word **output, table **symbolTable, int IC)
 {
-    int L, labelEndIndex;
+    int L, labelEndIndex, returnValue;
     enum lineKind kind;
     if((labelEndIndex = findChar(line, LABEL_MARKER)) != NOT_FOUND)
     {
-        checkLable(line, labelEndIndex, symbolTable);
+        if(checkLable(line, labelEndIndex, symbolTable) == ERROR_RETURN)
+            return ERROR_RETURN;
     }
 
     kind = checkKind(line, labelEndIndex);
     if(kind == K_DATA || kind == K_STRING)
     {
         /*steps 5-7*/
+
+        L=0; /*if there is data or string the IC dont need to be updated*/
     }
     if(kind == K_ENTERY || kind == K_EXTERN)
     {
         /*steps 8-10*/
+
+
+        L=0; /*if there is entery or extern the IC dont need to be updated*/
     }
-    if(kind == K_ELSE)
+    if(kind == K_CODE)
     {
+        int isExsist = VAL_FALSE, i;
+        char *str;
+        char cmp[5];
+        int length =0, lineLength;
+        int commandFound = NOT_FOUND;
         /*steps 11-15*/
+        if(labelEndIndex != NOT_FOUND)
+        {
+            /*enter the label to the symbol table as kind code*/
+            TableRow *tr = (*symbolTable)->head; /*make pointer to the symbol table*/
+            TableRow *label = (TableRow *) malloc(sizeof(TableRow));/*malloc place for the new row*/
+            label->name = IC; /*the new row needs the IC as the name*/
+            strncpy(label->content, line, labelEndIndex-1); /*copy the name of the label to the field in the row*/
+            label->symbolKind = K_CODE; /*the kind of the label is code*/
+            while(tr->next != NULL)/*finds the lasst row in the table*/
+                tr = tr->next;
+            tr->next = label; /*make the last row the new label*/
+        }
+
+        if(labelEndIndex == NOT_FOUND)
+            str= line;
+        else
+            str = line + labelEndIndex + 1;
+        lineLength = strlen(str);
+        while(length<4 && length < lineLength && ((str[length] >= 'a' && str[length] <= 'z') || str[length] == '.' ))
+        {
+            /*not white space, put it in the command string*/
+            cmp[length] = str[length]; 
+            length++; /*addvance the index*/
+        }
+        cmp[length] = '\0'; /*make the string \0 terminated*/
+        memmove(cmp, cmp, length);
+        /*check if the command exists*/
+        for(i = 0; i < AMOUNT_OF_COMMANDS && commandFound == NOT_FOUND; i++)
+        {
+            if(strcmp(cmp, COMMAND_NAME_WORDS[i]) == 0)
+                commandFound = i;
+        }
+        if(commandFound == NOT_FOUND){
+            errorHandle(line, Exeption exep);
+            return ERROR_RETURN;
+        }
+        
     }
 
     return L;
@@ -66,7 +115,7 @@ int checkLable(char *line, int endIndex, table **symbolTable)
         if(!((c >= 'a' && c<= 'z') || (c >= 'A' && c<= 'Z') || (c >= '0' && c<= '9')))
         {
             errorHandle(line, ILIGAL_LABEL_CHARACTERS);
-            return VAL_FALSE;
+            return ERROR_RETURN;
         }
     }
     strncpy(str, line, endIndex-1);
@@ -76,7 +125,7 @@ int checkLable(char *line, int endIndex, table **symbolTable)
         if(strcmp(str, SAVEDWORDS[i]) == 0)
         {
             errorHandle(line, ILIGAL_LABEL_NAME);
-            return VAL_FALSE;
+            return ERROR_RETURN;
         }
     }
 /*check that the name isnt in the label list already*/
@@ -85,7 +134,7 @@ int checkLable(char *line, int endIndex, table **symbolTable)
         if(strcmp(str, tr->content) == 0)
         {
             errorHandle(line, LABEL_ALREADY_EXSIST);
-            return VAL_FALSE;
+            return ERROR_RETURN;
         }
         tr = tr->next;
     }
@@ -118,6 +167,6 @@ enum lineKind checkKind(char *line, int labelEnd)
         return K_EXTERN;
     if(strcmp(cmp, ".entery") == 0)
         return K_ENTERY;
-    return K_ELSE;
+    return K_CODE;
 }
 
