@@ -1,172 +1,379 @@
-#include "word.h"
-#include "consts.h"
-#include "error.h"
-#include "table.h"
+#include <ctype.h>
 #include <string.h>
-#include <stdlib.h>
-#define NOT_FOUND -1
-#define LABEL_MARKER ':'
-#define ERROR_RETURN -10
+#include "lineParse.h"
 
+#define EXTERNAL -1
 
+const char *COMMAND_NAME_WORDS[] = {"mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec", "jmp",
+ "bne", "red", "prn", "jsr", "rts", "stop"};
+const char *SAVEDWORDS[] = {"mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec", "jmp",
+ "bne", "red", "prn", "jsr", "rts", "stop", "data", "string", "entery", "extern"};
 
-int findChar(char *, char);
-int checkLable(char *, int, table **);
-enum lineKind checkKind(char *, int);
-
-
-int parseLine(char *line, word **output, table **symbolTable, int IC)
+int parseLine(char *line, Word **output, Table **symbolTable, DataTable **data, int *IC, int *DC)
 {
-    int L, labelEndIndex, returnValue;
+    int L = 0;
     enum lineKind kind;
-    if((labelEndIndex = findChar(line, LABEL_MARKER)) != NOT_FOUND)
+    char *word, *label, *restOfLine;
+    TableRow *trLabel = NULL, *tr;
+    Exeption ret;
+    /*label check*/
+    if(strchr(line, ':') != NULL)
     {
-        if(checkLable(line, labelEndIndex, symbolTable) == ERROR_RETURN)
-            return ERROR_RETURN;
-    }
-
-    kind = checkKind(line, labelEndIndex);
-    if(kind == K_DATA || kind == K_STRING)
-    {
-        /*steps 5-7*/
-
-        L=0; /*if there is data or string the IC dont need to be updated*/
-    }
-    if(kind == K_ENTERY || kind == K_EXTERN)
-    {
-        /*steps 8-10*/
-
-
-        L=0; /*if there is entery or extern the IC dont need to be updated*/
-    }
-    if(kind == K_CODE)
-    {
-        int isExsist = VAL_FALSE, i;
-        char *str;
-        char cmp[5];
-        int length =0, lineLength;
-        int commandFound = NOT_FOUND;
-        /*steps 11-15*/
-        if(labelEndIndex != NOT_FOUND)
+        label = strtok(line, ":");
+        if((ret = checkLable(label, symbolTable)) != SUCCESS)
         {
-            /*enter the label to the symbol table as kind code*/
-            TableRow *tr = (*symbolTable)->head; /*make pointer to the symbol table*/
-            TableRow *label = (TableRow *) malloc(sizeof(TableRow));/*malloc place for the new row*/
-            label->name = IC; /*the new row needs the IC as the name*/
-            strncpy(label->content, line, labelEndIndex-1); /*copy the name of the label to the field in the row*/
-            label->symbolKind = K_CODE; /*the kind of the label is code*/
+            errorHandle(line, ret);
+            L= ERROR_RETURN;
+            goto FINISH;
+        }
+    }
+    /*kind check*/
+    if(label != NULL)
+        word = strtok(NULL, " \t\n");
+    else
+        word = strtok(line, " \t\n");
+    if(word != NULL)
+    {
+        kind = checkKind(word);
+        if(kind == K_DATA || kind == K_STRING)
+        {
+            /*steps 5-7*/
+            if(label != NULL)
+            {
+                trLabel = makeLabel(*DC, label, kind);
+            }
+            /*encode data/string to the table*/
+            restOfLine = strtok(NULL,""); /*gets the rest of the line*/
+            ret = parseKindCode(word, restOfLine,output, &L);
+            if(ret != SUCCESS)
+                errorHandle(line, ret);
+            L=0; /*if there is data or string the IC dont need to be updated*/
+        }
+        if(kind == K_ENTERY || kind == K_EXTERN)/*dont need to entery label of this kind of commands to the table*/
+        {
+            /*steps 8-10*/
+            /*entery do nothing, extern do step 11*/
+            if(kind == K_EXTERN)
+            {
+                restOfLine = strtok(NULL,""); /*gets the rest of the line*/
+                ret = parseExtern(restOfLine,symbolTable);
+                if(ret != SUCCESS)
+                    errorHandle(line, ret);
+            }
+            L=0; /*if there is entery or extern the IC dont need to be updated*/
+        }
+        if(kind == K_CODE)
+        {
+            /*steps 11-15*/
+            if(label != NULL)
+            {
+                trLabel = makeLabel(*IC, label, K_CODE);
+            }
+            restOfLine = strtok(NULL,""); /*gets the rest of the line*/
+            ret = parseKindCode(word, restOfLine,output, &L);
+            if(ret != SUCCESS)
+                errorHandle(line, ret);
+        }
+    }
+    else
+    {
+        /*empty line, check if there is label or not*/
+        if(label != NULL)
+        {
+            /*enter label as code*/
+            trLabel = makeLabel(*IC, label, K_CODE);
+        }
+    }
+
+FINISH: 
+    if(trLabel != NULL)
+    {
+        tr = (*symbolTable)->head;
+        if((*symbolTable)->head == NULL)/*if there is no head put in the head*/
+            (*symbolTable)->head = trLabel;
+        else /*there is head put in last*/
+        {
             while(tr->next != NULL)/*finds the lasst row in the table*/
-                tr = tr->next;
-            tr->next = label; /*make the last row the new label*/
+            tr = tr->next;
+            tr->next = trLabel; /*make the last row the new label*/
         }
-
-        if(labelEndIndex == NOT_FOUND)
-            str= line;
-        else
-            str = line + labelEndIndex + 1;
-        lineLength = strlen(str);
-        while(length<4 && length < lineLength && ((str[length] >= 'a' && str[length] <= 'z') || str[length] == '.' ))
-        {
-            /*not white space, put it in the command string*/
-            cmp[length] = str[length]; 
-            length++; /*addvance the index*/
-        }
-        cmp[length] = '\0'; /*make the string \0 terminated*/
-        memmove(cmp, cmp, length);
-        /*check if the command exists*/
-        for(i = 0; i < AMOUNT_OF_COMMANDS && commandFound == NOT_FOUND; i++)
-        {
-            if(strcmp(cmp, COMMAND_NAME_WORDS[i]) == 0)
-                commandFound = i;
-        }
-        if(commandFound == NOT_FOUND){
-            errorHandle(line, Exeption exep);
-            return ERROR_RETURN;
-        }
-        
     }
 
     return L;
 }
 
-/*this function finds the first show of char c in string line*/
-int findChar(char *line, char c)
+TableRow *makeLabel(int name, char *content, enum lineKind kind)
 {
-    int i, length;
-    length = strlen(line);
-    for(i=0; i < length; i++)
-    {
-        if(*(line+i) == c)
-            return i;
-    }
-    return NOT_FOUND;
+    TableRow *trLabel = (TableRow *) malloc(sizeof(TableRow));/*malloc place for the new row*/
+    trLabel->name = name;
+    strcpy(trLabel->content, content); /*copy the name of the label to the field in the row*/
+    trLabel->symbolKind = kind;
+    trLabel->is_entery = VAL_FALSE;
+    trLabel->next = NULL;
+    return trLabel;
 }
 
-/*check that all of the characters are from the abs (capital or not) or numbers*/
-int checkLable(char *line, int endIndex, table **symbolTable)
+/*check that all of the characters are from the abc (capital or not) or numbers*/
+Exeption checkLable(char *label, Table **symbolTable)
 {
     int i;
-    char *str;
     TableRow *tr = (*symbolTable)->head;
     /*check that all characters are valid*/
-    for(i=0;i<endIndex; i++)
+    for(i=0;i<strlen(label); i++)
     {
-        char c = *(line + i);
+        char c = label[i];
         if(!((c >= 'a' && c<= 'z') || (c >= 'A' && c<= 'Z') || (c >= '0' && c<= '9')))
         {
-            errorHandle(line, ILIGAL_LABEL_CHARACTERS);
-            return ERROR_RETURN;
+            return ILIGAL_LABEL_CHARACTERS;
         }
     }
-    strncpy(str, line, endIndex-1);
     /*check that the label is not one of the saved words*/
     for(i=0;i < AMOUNT_SAVED_WORDS; i++)
     {
-        if(strcmp(str, SAVEDWORDS[i]) == 0)
+        if(strcmp(label, SAVEDWORDS[i]) == 0)
         {
-            errorHandle(line, ILIGAL_LABEL_NAME);
-            return ERROR_RETURN;
+            return ILIGAL_LABEL_NAME;
         }
     }
 /*check that the name isnt in the label list already*/
     while(tr != NULL)
     {
-        if(strcmp(str, tr->content) == 0)
+        if(strcmp(label, tr->content) == 0)
         {
-            errorHandle(line, LABEL_ALREADY_EXSIST);
-            return ERROR_RETURN;
+            return LABEL_ALREADY_EXSIST;
         }
         tr = tr->next;
     }
-    return VAL_TRUE;
+    return SUCCESS;
 }
 
-enum lineKind checkKind(char *line, int labelEnd)
+enum lineKind checkKind(char *firstWord)
 {
-    char *str;
-    char cmp[8];
-    int length =0, lineLength;
-    if(labelEnd == NOT_FOUND)
-        str= line;
-    else
-        str = line + labelEnd + 1;
-    lineLength = strlen(str);
-    while(length<7 && length < lineLength && ((str[length] >= 'a' && str[length] <= 'z') || str[length] == '.' ))
-    {
-        /*not white space, put it in the command string*/
-        cmp[length] = str[length]; 
-        length++; /*addvance the index*/
-    }
-    cmp[length] = '\0'; /*make the string \0 terminated*/
-    memmove(cmp, cmp, length);
-    if(strcmp(cmp, ".data") == 0)
+    if(strcmp(firstWord, ".data") == 0)
         return K_DATA;
-    if(strcmp(cmp, ".string") == 0)
+    if(strcmp(firstWord, ".string") == 0)
         return K_STRING;
-    if(strcmp(cmp, ".extern") == 0)
+    if(strcmp(firstWord, ".extern") == 0)
         return K_EXTERN;
-    if(strcmp(cmp, ".entery") == 0)
+    if(strcmp(firstWord, ".entery") == 0)
         return K_ENTERY;
     return K_CODE;
 }
 
+
+Exeption parseKindData(char *line, DataTable **data, int *DC, enum lineKind kind)
+{
+    DataTableRow *dtr = (*data)->head; /*point to the last place to add the new word to*/
+    char *str;
+    int number,j,mask;
+    Exeption ret;
+    while((str = strtok(line, " ,\n\t"))!= NULL)
+    {
+        int i, sizeOfDw;
+        Word **dw;
+        switch(kind)
+        {
+            case K_DATA:
+                /*firstly check that all of the chars in str are either number or "-" or "."*/
+                ret = checkLegalityNumber(str);
+                if(ret != SUCCESS)
+                    return ret;/*there was error dont parse the data*/
+                number = atoi(str);/*parse the string to double*/
+                /*parse the data in word into dw as number*/
+                dw = (Word **)malloc(sizeof(Word *));
+                *dw = (Word *)malloc(sizeof(Word));
+                mask = 1;
+                for(j=0; j<12;j++)/*copy the 12 bits of the char into the data word*/
+                {
+                    ((*dw)->data).data = number & mask;
+                    mask = mask << 1;
+                }
+                break;
+            case K_STRING:
+                /*parse the data in the word into dw as string*/
+                sizeOfDw = (int) strlen(str) - 2;/*remove the count of the starting " and the closing "*/
+                if(str[0] == '\"' && str[sizeOfDw+1]== '\"') /*only if this is string and now floating text*/
+                {
+                    dw = (Word **)malloc(sizeOfDw*sizeof(Word *));
+                    for(i=0; i< sizeOfDw;i++)
+                    {
+                        int mask = 1,j;
+                        *(dw+i) = (Word *)malloc(sizeof(Word));
+                        for(j=0; j<12;j++)/*copy the 12 bits of the char into the data word*/
+                        {
+                            ((*(dw+i))->data).data = str[i] & mask;
+                            mask = mask << 1;
+                        }
+                    }
+                }
+                else if(str[sizeOfDw+1]!='\"')
+                    return FORGOT_QUETATION;/*the user forgot the quetatoin sign in the start or the end, its not comment*/
+                break;
+            case K_EXTERN:
+            case K_ENTERY:
+            case K_CODE:
+                break; /*not the right function*/
+        }
+        /*add dw into the end of the data table*/
+        for(i=0; i<sizeOfDw; i++)
+        {
+            /*make new row*/
+            DataTableRow *newRow = (DataTableRow *)malloc(sizeof(DataTableRow));
+            newRow->DC = *DC;
+            newRow->content = *(dw+i);
+            /*add new row to the data table*/
+            if((*data)->head == NULL)
+            {
+                (*data)->head = newRow;
+                dtr = (*data)->head;
+            }
+            else
+            {
+                dtr->next = newRow;
+                dtr = dtr->next;
+            }
+        }
+    }
+}
+
+Exeption checkLegalityNumber(char *str)
+{
+    int strLen = (int) strlen(str);
+    int i;
+    if(str[0] != '-' && !isnumber(str[0]))
+        /*illigial char inside a number*/
+        return ILLIGAL_CHAR_IN_NUMBER;
+    for(i=1;i<strLen;i++)
+    {
+        if(!isnumber(str[i]))
+            return ILLIGAL_CHAR_IN_NUMBER;
+    }
+    return SUCCESS;
+}
+
+void buildFirstWordCode(Word **, int , char *, char *);
+
+Exeption parseKindCode(char *command, char *line, Word **output, int *L)
+{
+    int i, commandFound;
+    char *firstOp = NULL, *secondOp = NULL, *temp;
+    /*check if the command exists*/
+    for(i = 0; i < AMOUNT_OF_COMMANDS && commandFound == NOT_FOUND; i++)
+    {
+        if(strcmp(command, COMMAND_NAME_WORDS[i]) == 0)
+            commandFound = i;
+    }
+    if(commandFound == NOT_FOUND){
+        return COMMAND_NOT_FOUND;
+    }
+
+    /*everything else in parsing the command*/
+    /*check if the command is from the first group of 2 operands, this group opcodes are from 0 to 3 and 6*/
+    if((commandFound >= OPCODE_MOV && commandFound <=OPCODE_SUB) || commandFound == OPCODE_LEA)
+    {
+        /*two operands*/
+        *L = 3; /*this type of operands need 3 words*/
+        firstOp  = strtok(line, " \t\n");
+        temp = strtok(NULL, " \n\t");
+        if(temp[0] != ',')
+            return MISSING_COMMA;
+        if(strlen(temp) > 1)
+            memmove(secondOp, temp+1, sizeof(temp)-1);
+        else
+            secondOp = strtok(NULL, " \t\n");
+        if(firstOp == NULL || secondOp == NULL)
+            return MISSING_OPERATORS;
+
+    }
+    /*check if the command is from the second group of 1 operands, this group opcodes are 4,5 and 7 to 13 */
+    if(commandFound == OPCODE_NOT || commandFound == OPCODE_CLR || (commandFound >= OPCODE_INC && commandFound <= OPCODE_JSR))
+    {
+        /*one operand*/
+        *L = 2; /*this type of operands need 2 words*/
+        firstOp  = strtok(line, " \t\n");
+        if(firstOp == NULL)
+            return MISSING_OPERATORS;
+    }
+    /*check if the command is from the third group of 0 operands, this group opcodes are 14 and 15*/
+    if(commandFound == 14 || commandFound == 15)
+    {
+        /*zero operands*/
+        *L = 1; /*this type of operands need 1 word*/
+    }
+
+    *output = (Word *)malloc(sizeof(Word)*(*L));
+    buildFirstWordCode(output, commandFound, firstOp, secondOp);
+
+    /*check if there is gurbuige in the end of the line return error*/
+    temp = strtok(NULL, " \t\n");
+    if(temp != NULL) /*if at the end of the line there is text that is not a comment its illigal*/
+        return GARBUIGE_AT_THE_END;
+    /*succedded with no errors*/
+    return SUCCESS;
+}
+
+void buildFirstWordCode(Word **output, int opCode, char *firstOp, char *secondOp)
+{
+    Word *cword;
+    cword = &((*output)[0]);
+    (cword->command).opcode = opCode;
+    (cword->command).type = TYPE_A;
+    if(firstOp != NULL)
+    {
+        (cword->command).targetOp = operandFormat(firstOp);
+    }
+    else
+    {
+        (cword->command).targetOp = 0;
+    }
+    if(secondOp != NULL)
+    {
+        (cword->command).sourceOp = operandFormat(secondOp);
+    }
+    else
+    {
+        (cword->command).sourceOp = 0;
+    }
+    /*add the word to output*/
+    *output[0]=cword;
+}
+
+int operandFormat(char *operand)
+{
+    if(operand[0] == '@')
+        return ADDR_MODE_REGISTER; /*this is a register*/
+    else if(operand[0] == '-' || isdigit(operand[0]))
+        return ADDR_MODE_IMIDIATE; /*this is a number*/
+    else 
+        return ADDR_MODE_DIRECT; /*this is not a register or a number so it must be label*/
+}
+
+Exeption parseExtern(char *restOfLine,Table **symbolTable)
+{
+    char *label, *temp;
+    Exeption ret;
+    label = strtok(restOfLine, " \t\n");
+    ret = checkLabel(label, symbolTable);
+    if(ret != SUCCESS)
+        return ret;/*error return*/
+    else
+    {
+        /*add the label into the symbol table*/
+        TableRow *trLabel = makeLable(EXTERNAL, label, K_EXTERN);
+        TableRow *tr;
+        tr = (*symbolTable)->head;
+        if((*symbolTable)->head == NULL)/*if there is no head put in the head*/
+            (*symbolTable)->head = trLabel;
+        else /*there is head put in last*/
+        {
+            while(tr->next != NULL)/*finds the lasst row in the table*/
+                tr = tr->next;
+            tr->next = trLabel; /*make the last row the new label*/
+        }
+    }
+    /*check for garbuige*/
+    temp = strtok(NULL, " \t\n");
+    if(temp != NULL)
+        return GARBUIGE_AT_THE_END;
+    return SUCCESS;
+}

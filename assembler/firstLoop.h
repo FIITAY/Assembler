@@ -1,4 +1,12 @@
+#ifndef FIRSTLOOP
+#define FIRSTLOOP
 
-/*the only accssesable function, 
+#include <stdio.h>
+#include "word.h"
+#include "table.h"
+#include "DataTable.h"
+/*the only accssesable function,
 will get the file to compile and pointer to the final binary array and the tables*/
-int doFirstLoop(FILE *fp, word **, table **);
+int doFirstLoop(FILE *, Word *, Table **, DataTable **);
+
+#endif
