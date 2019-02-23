@@ -65,9 +65,9 @@ void fileCompiler(char *fileName)
         return ;
     }
     /*file open success*/
-    NEW_TABLE(symbolTable)
-    NEW_TABLE(externalTable)
-    NEW_DATA_TABLE(dataTable)
+    symbolTable.head = NULL;
+    externalTable.head = NULL;
+    dataTable.head = NULL;
     ret  = doFirstLoop(fp, binaryCode, &symbolTable, &dataTable);
     if(ret != ERROR_RETURN)/*do the secondLoop only if the first pass returned SUCCESS*/
     {

@@ -14,18 +14,20 @@ int parseLine(char *line, Word **output, Table *symbolTable, DataTable *data, in
     int L = 0;
     enum lineKind kind;
     char *word, *label, *restOfLine;
+    char originalLine[MAX_CHARS_IN_LINE];
     TableRow *trLabel = NULL, *tr;
     Exeption ret;
     word = NULL;
     label = NULL;
     restOfLine = NULL;
+    strcpy(originalLine, line);
     /*label check*/
     if(strchr(line, ':') != NULL)
     {
         label = strtok(line, ":");
         if((ret = checkLable(label, symbolTable)) != SUCCESS)
         {
-            errorHandle(line, ret);
+            errorHandle(originalLine, ret);
             L= ERROR_RETURN;
             goto FINISH;
         }
@@ -49,7 +51,11 @@ int parseLine(char *line, Word **output, Table *symbolTable, DataTable *data, in
             restOfLine = strtok(NULL,""); /*gets the rest of the line*/
             ret = parseKindData(restOfLine, data, DC, kind);
             if(ret != SUCCESS)
-                errorHandle(line, ret);
+            {
+                errorHandle(originalLine, ret);
+                L = ERROR_RETURN;
+                goto FINISH;
+            }
             L=0; /*if there is data or string the IC dont need to be updated*/
         }
         if(kind == K_ENTERY || kind == K_EXTERN)/*dont need to entery label of this kind of commands to the table*/
@@ -61,7 +67,11 @@ int parseLine(char *line, Word **output, Table *symbolTable, DataTable *data, in
                 restOfLine = strtok(NULL,""); /*gets the rest of the line*/
                 ret = parseExtern(restOfLine,symbolTable);
                 if(ret != SUCCESS)
-                    errorHandle(line, ret);
+                {
+                    errorHandle(originalLine, ret);
+                    L= ERROR_RETURN;
+                    goto FINISH;
+                }
             }
             L=0; /*if there is entery or extern the IC dont need to be updated*/
         }
@@ -75,7 +85,11 @@ int parseLine(char *line, Word **output, Table *symbolTable, DataTable *data, in
             restOfLine = strtok(NULL,""); /*gets the rest of the line*/
             ret = parseKindCode(word, restOfLine,output, &L);
             if(ret != SUCCESS)
-                errorHandle(line, ret);
+            {
+                errorHandle(originalLine, ret);
+                L = ERROR_RETURN;
+                goto FINISH;
+            }
         }
     }
     else
@@ -228,6 +242,7 @@ Exeption parseKindData(char *line, DataTable *data, int *DC, enum lineKind kind)
             case K_EXTERN:
             case K_ENTERY:
             case K_CODE:
+            case K_NULL:
                 break; /*not the right function*/
         }
         /*add dw into the end of the data table*/
@@ -294,14 +309,29 @@ Exeption parseKindCode(char *command, char *line, Word **output, int *L)
         /*two operands*/
         *L = 3; /*this type of operands need 3 words*/
         firstOp  = strtok(line, " \t\n");
+        if(firstOp == NULL)
+            return MISSING_OPERATORS;
         temp = strtok(NULL, " \n\t");
-        if(temp[0] != ',')
+        if(temp == NULL)
+            return MISSING_OPERATORS;
+        if(temp[0] != ',' && firstOp[strlen(firstOp)-1] != ',' )/*if the last char in the first operand is comman or the first of the second ther is no missing comma*/
             return MISSING_COMMA;
-        if(strlen(temp) > 1)
-            memmove(secondOp, temp+1, sizeof(temp)-1);
+        if(temp[0] == ',' && firstOp[strlen(firstOp)-1] == ',' )/*there is extra comma (2 commas)*/
+            return EXTRA_COMMA;
+        /*decide how to get the parameter to the secondOp var*/
+        if(strlen(temp) > 1 && temp[0] == ',')
+        {
+            secondOp = (char *)malloc((strlen(temp)-1)*sizeof(char));
+            memmove(secondOp, temp+1, strlen(temp)-1);
+        }
+        else if(strlen(temp) > 1 && temp[0] != ',')
+        {
+            secondOp = (char *)malloc((strlen(temp))*sizeof(char));
+            memmove(secondOp, temp, strlen(temp));
+        }
         else
             secondOp = strtok(NULL, " \t\n");
-        if(firstOp == NULL || secondOp == NULL)
+        if(secondOp == NULL)
             return MISSING_OPERATORS;
 
     }
@@ -349,6 +379,7 @@ void buildFirstWordCode(Word **output, int opCode, char *firstOp, char *secondOp
     if(secondOp != NULL)
     {
         (cword->command).sourceOp = operandFormat(secondOp);
+        free(secondOp);
     }
     else
     {

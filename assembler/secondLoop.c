@@ -12,31 +12,40 @@ Exeption doSecondLoop(FILE *fp, Word binaryCode[], Table *symbolTable, Table *ex
 {
     int IC = 0; /*step 1*/
     char line[MAX_CHARS_IN_LINE];
+    char originalLine[MAX_CHARS_IN_LINE];
     char *restOfLine;
     Exeption ret = SUCCESS; /*start the loop thinking that there wont be any errors*/
+
+
     while(fgets(line, MAX_CHARS_IN_LINE, fp) != NULL) /*read line from fp, insert it into line ptr and the length to lineLength*/
     {
         Exeption currRet = SUCCESS;
+        strcpy(originalLine, line);
         if(line[0] != COMMENT_MARKER)
         {
             enum lineKind kind;
             restOfLine = strchr(line, ':');
             if(restOfLine == NULL)
                 restOfLine = line;
+            else
+            {
+                restOfLine = strtok(line, ":");/*remove the label from the strtok of line*/
+                restOfLine = strtok(NULL, "");/*put inside restOfLine the reminds of line*/
+            }
             kind = checkKind(strtok(restOfLine, " \t\n"));
             if(kind == K_ENTERY) /*step 5*/
             {
                 /*step 6*/
                 currRet = finishEntery(restOfLine, symbolTable);
                 if(currRet != SUCCESS)
-                    errorHandle(line, currRet);
+                    errorHandle(originalLine, currRet);
             }
             if(kind == K_CODE)
             {
                 /*step 7- finish the coding of the 2 and 3 words*/
                 currRet = finishEncodinCode(strtok(NULL, ""),binaryCode,symbolTable, externalTable ,&IC);
                 if(currRet != SUCCESS)
-                    errorHandle(line, currRet);
+                    errorHandle(originalLine, currRet);
             }
             /*if kind is K_DATA \ K_EXTERN \ K_STRING or step 6 or step 9 go to here*/
         }
@@ -155,7 +164,8 @@ Exeption buildParmWord(char *operand, Table *symbolTable, Word *output, Table *e
             mask =1;
             for(i=0;i<NUMBER_BIT_LEN; i++)
             {
-                (output->parmNum).number = trLabel->name & mask;
+                /*puts the place in the memory that is the name plus the load address*/
+                (output->parmNum).number |= (trLabel->name+LOAD_ADDR) & mask;
                 mask = mask << 1;
             }
         }
@@ -197,7 +207,7 @@ Exeption buildParmWord(char *operand, Table *symbolTable, Word *output, Table *e
         mask =1;
         for(i=0;i<NUMBER_BIT_LEN; i++)
         {
-            (output->parmNum).number = number & mask;
+            (output->parmNum).number |= number & mask;
             mask = mask << 1;
         }
     }

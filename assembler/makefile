@@ -14,8 +14,8 @@ assembler: $(OBJS)
 clean:
 	rm *.o
 
-#debug building
-#debug: mycomp.c complex.c parseinput.c complex.h  parseinput.h
-#gcc $(CFLAGS) -g $^ -o $@ -lm
+.PHONY: tests
+tests: assembler
+	./run_tests.sh
 
 -include $(DEPS)

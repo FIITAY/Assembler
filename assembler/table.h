@@ -19,8 +19,4 @@ typedef struct table
     TableRow* head;
 }Table;
 
-/*make new table in the varuble table*/
-#define NEW_TABLE(t)\
-    t.head = NULL;
-
 #endif

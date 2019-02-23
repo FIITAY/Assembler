@@ -16,8 +16,4 @@ typedef struct
     DataTableRow* head;
 }DataTable;
 
-/*make new data table in the varuble table*/
-#define NEW_DATA_TABLE(dt)\
-    dt.head = NULL;
-
 #endif

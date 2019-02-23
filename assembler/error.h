@@ -15,7 +15,8 @@ typedef enum {SUCCESS,
     ILLIGAL_PARATMETER,
     ILLIGAL_REGISTER_NUMBER,
     ILLIGAL_REGISTER_FORMAT,
-    OPERAND_LABEL_NOT_FOUND
+    OPERAND_LABEL_NOT_FOUND,
+    EXTRA_COMMA
 } Exeption;
 
 void errorHandle(char *line, Exeption exep);

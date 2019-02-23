@@ -15,9 +15,9 @@
 struct commandWord
 {
     unsigned int type     : ARE_LEN;
-    unsigned int targetOp : OPERAND_LEN;
-    unsigned int opcode   : OPCODE_LEN;
     unsigned int sourceOp : OPERAND_LEN;
+    unsigned int opcode   : OPCODE_LEN;
+    unsigned int targetOp : OPERAND_LEN;
 };
 
 struct dataWord
@@ -28,8 +28,8 @@ struct dataWord
 struct regWord
 {
     unsigned int type     : ARE_LEN; /*always zero*/
-    unsigned int destOp   : REGISTER_LEN;
     unsigned int sourceOp : REGISTER_LEN;
+    unsigned int destOp   : REGISTER_LEN;
 };
 
 struct parmNumber
