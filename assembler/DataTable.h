@@ -2,11 +2,12 @@
 #define DATATABLE
 
 #include "word.h"
+#include "consts.h"
 
 typedef struct dataTableRow
 {
     int   DC;    /*the DC value of the line */
-    Word *content; /*place for the content of the row*/
+    Word content; /*place for the content of the row*/
     struct dataTableRow *next; /*pointer to the next row of the table*/
 } DataTableRow;
 
@@ -16,7 +17,7 @@ typedef struct
 }DataTable;
 
 /*make new data table in the varuble table*/
-#define NEW_DATA_TABLE(dtable)\
-dtable = (DataTable *)malloc(sizeof(DataTable));
+#define NEW_DATA_TABLE(dt)\
+    dt.head = NULL;
 
 #endif

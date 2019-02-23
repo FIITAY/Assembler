@@ -38,6 +38,7 @@ struct parmNumber
     unsigned int number   : NUMBER_BIT_LEN;
 };
 
+
 typedef union word{
     struct commandWord command;
     struct dataWord data;

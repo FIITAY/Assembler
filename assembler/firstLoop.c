@@ -7,9 +7,10 @@
 
 
 void finishTable(Table *, int);
+void finishData(DataTable *, int *, Word []);
 
 /*do the first loop over the file fp*/
-int doFirstLoop(FILE *fp, Word binaryCode[], Table **symbolTable, DataTable **dataTable)
+int doFirstLoop(FILE *fp, Word binaryCode[], Table *symbolTable, DataTable *dataTable)
 {
     char line[MAX_CHARS_IN_LINE];
     int ret = SUCCESS; /*start the loop thinking that there wont be any errors*/
@@ -40,8 +41,12 @@ int doFirstLoop(FILE *fp, Word binaryCode[], Table **symbolTable, DataTable **da
         /*comment do nothing*/
     }
 
-    finishTable(*symbolTable, IC);
-
+    if(ret != ERROR_RETURN)
+    {
+        finishTable(symbolTable, IC);
+        finishData(dataTable, &IC, binaryCode);
+        return IC;
+    }
     return ret;
 }
 
@@ -52,7 +57,23 @@ void finishTable(Table *st, int IC)
     while(tr != NULL)/*loop throw while the pointer is not null*/
     {
         if(tr->symbolKind == K_DATA || tr->symbolKind == K_STRING)
+        {
             tr->name += IC; /*update the value*/
+        }
         tr = tr->next; /*move the pointer to the next row*/
+    }
+}
+
+/*add the data to the end of the binary code*/
+void finishData(DataTable *dt, int *IC, Word binaryCode[])
+{
+    DataTableRow *dtr = dt->head;
+    while(dtr != NULL)/*loop over the whole list*/
+    {
+        dtr->DC = *IC;/*make the value of the line address the same as the base IC+DC*/
+        binaryCode[*IC] = (dtr->content); /*copy the line to the respective cell*/
+        /*moce the ic and the dtr forward*/
+        *IC = *IC + 1;
+        dtr = dtr->next;
     }
 }

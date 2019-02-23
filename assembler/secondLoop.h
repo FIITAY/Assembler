@@ -5,7 +5,8 @@
 #include <string.h>
 #include "word.h"
 #include "table.h"
+#include "error.h"
 
-Exeption doSecondLoop(FILE *, Word **, Table **);
+Exeption doSecondLoop(FILE *, Word [], Table *, Table *);
 
 #endif

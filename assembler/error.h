@@ -14,7 +14,8 @@ typedef enum {SUCCESS,
     ENTERY_LABEL_NOT_FOUND,
     ILLIGAL_PARATMETER,
     ILLIGAL_REGISTER_NUMBER,
-    ILLIGAL_REGISTER_FORMAT
+    ILLIGAL_REGISTER_FORMAT,
+    OPERAND_LABEL_NOT_FOUND
 } Exeption;
 
 void errorHandle(char *line, Exeption exep);

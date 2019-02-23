@@ -9,13 +9,16 @@ const char *COMMAND_NAME_WORDS[] = {"mov", "cmp", "add", "sub", "not", "clr", "l
 const char *SAVEDWORDS[] = {"mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec", "jmp",
  "bne", "red", "prn", "jsr", "rts", "stop", "data", "string", "entery", "extern"};
 
-int parseLine(char *line, Word **output, Table **symbolTable, DataTable **data, int *IC, int *DC)
+int parseLine(char *line, Word **output, Table *symbolTable, DataTable *data, int *IC, int *DC)
 {
     int L = 0;
     enum lineKind kind;
     char *word, *label, *restOfLine;
     TableRow *trLabel = NULL, *tr;
     Exeption ret;
+    word = NULL;
+    label = NULL;
+    restOfLine = NULL;
     /*label check*/
     if(strchr(line, ':') != NULL)
     {
@@ -44,7 +47,7 @@ int parseLine(char *line, Word **output, Table **symbolTable, DataTable **data, 
             }
             /*encode data/string to the table*/
             restOfLine = strtok(NULL,""); /*gets the rest of the line*/
-            ret = parseKindCode(word, restOfLine,output, &L);
+            ret = parseKindData(restOfLine, data, DC, kind);
             if(ret != SUCCESS)
                 errorHandle(line, ret);
             L=0; /*if there is data or string the IC dont need to be updated*/
@@ -88,9 +91,9 @@ int parseLine(char *line, Word **output, Table **symbolTable, DataTable **data, 
 FINISH: 
     if(trLabel != NULL)
     {
-        tr = (*symbolTable)->head;
-        if((*symbolTable)->head == NULL)/*if there is no head put in the head*/
-            (*symbolTable)->head = trLabel;
+        tr = symbolTable->head;
+        if(symbolTable->head == NULL)/*if there is no head put in the head*/
+            symbolTable->head = trLabel;
         else /*there is head put in last*/
         {
             while(tr->next != NULL)/*finds the lasst row in the table*/
@@ -114,10 +117,10 @@ TableRow *makeLabel(int name, char *content, enum lineKind kind)
 }
 
 /*check that all of the characters are from the abc (capital or not) or numbers*/
-Exeption checkLable(char *label, Table **symbolTable)
+Exeption checkLable(char *label, Table *symbolTable)
 {
     int i;
-    TableRow *tr = (*symbolTable)->head;
+    TableRow *tr = symbolTable->head;
     /*check that all characters are valid*/
     for(i=0;i<strlen(label); i++)
     {
@@ -149,6 +152,8 @@ Exeption checkLable(char *label, Table **symbolTable)
 
 enum lineKind checkKind(char *firstWord)
 {
+    if(firstWord == NULL)
+        return K_NULL;
     if(strcmp(firstWord, ".data") == 0)
         return K_DATA;
     if(strcmp(firstWord, ".string") == 0)
@@ -161,16 +166,26 @@ enum lineKind checkKind(char *firstWord)
 }
 
 
-Exeption parseKindData(char *line, DataTable **data, int *DC, enum lineKind kind)
+Exeption parseKindData(char *line, DataTable *data, int *DC, enum lineKind kind)
 {
-    DataTableRow *dtr = (*data)->head; /*point to the last place to add the new word to*/
+    DataTableRow *dtr = data->head; /*point to the last place to add the new word to*/
     char *str;
     int number,j,mask;
     Exeption ret;
-    while((str = strtok(line, " ,\n\t"))!= NULL)
+
+    /*get dtr to the last row*/
+    if(data->head != NULL)
+    {
+        while(dtr->next != NULL)
+            dtr = dtr->next;
+    }
+
+    str = strtok(line, " ,\n\t"); /*gets the first parm*/
+
+    while(str != NULL)
     {
         int i, sizeOfDw;
-        Word **dw;
+        Word *dw;
         switch(kind)
         {
             case K_DATA:
@@ -180,12 +195,11 @@ Exeption parseKindData(char *line, DataTable **data, int *DC, enum lineKind kind
                     return ret;/*there was error dont parse the data*/
                 number = atoi(str);/*parse the string to double*/
                 /*parse the data in word into dw as number*/
-                dw = (Word **)malloc(sizeof(Word *));
-                *dw = (Word *)malloc(sizeof(Word));
+                dw = (Word *)malloc(sizeof(Word));
                 mask = 1;
                 for(j=0; j<12;j++)/*copy the 12 bits of the char into the data word*/
                 {
-                    ((*dw)->data).data = number & mask;
+                    (dw->data).data |= (number & mask);
                     mask = mask << 1;
                 }
                 break;
@@ -194,17 +208,19 @@ Exeption parseKindData(char *line, DataTable **data, int *DC, enum lineKind kind
                 sizeOfDw = (int) strlen(str) - 2;/*remove the count of the starting " and the closing "*/
                 if(str[0] == '\"' && str[sizeOfDw+1]== '\"') /*only if this is string and now floating text*/
                 {
-                    dw = (Word **)malloc(sizeOfDw*sizeof(Word *));
+                    dw = (Word *)malloc((sizeOfDw+1)*sizeof(Word));/*for the amount of chars inside the string + \0*/
                     for(i=0; i< sizeOfDw;i++)
                     {
                         int mask = 1,j;
-                        *(dw+i) = (Word *)malloc(sizeof(Word));
+                        ((dw+i)->data).data = 0;
                         for(j=0; j<12;j++)/*copy the 12 bits of the char into the data word*/
                         {
-                            ((*(dw+i))->data).data = str[i] & mask;
+                            ((dw+i)->data).data |= (str[i+1] & mask);
                             mask = mask << 1;
                         }
                     }
+                    /*add \0*/
+                    (dw+sizeOfDw)->data.data = 0; /*value of \0 is 0*/
                 }
                 else if(str[sizeOfDw+1]!='\"')
                     return FORGOT_QUETATION;/*the user forgot the quetatoin sign in the start or the end, its not comment*/
@@ -215,17 +231,18 @@ Exeption parseKindData(char *line, DataTable **data, int *DC, enum lineKind kind
                 break; /*not the right function*/
         }
         /*add dw into the end of the data table*/
-        for(i=0; i<sizeOfDw; i++)
+        for(i=0; i<sizeOfDw+1; i++) /*will loop the amount of chars in the string +1 for the \0*/
         {
             /*make new row*/
             DataTableRow *newRow = (DataTableRow *)malloc(sizeof(DataTableRow));
             newRow->DC = *DC;
             newRow->content = *(dw+i);
+            newRow->next = NULL;
             /*add new row to the data table*/
-            if((*data)->head == NULL)
+            if(data->head == NULL)
             {
-                (*data)->head = newRow;
-                dtr = (*data)->head;
+                data->head = newRow;
+                dtr = data->head;
             }
             else
             {
@@ -233,19 +250,21 @@ Exeption parseKindData(char *line, DataTable **data, int *DC, enum lineKind kind
                 dtr = dtr->next;
             }
         }
+        str = strtok(NULL," ,\n\t");
     }
+    return SUCCESS;
 }
 
 Exeption checkLegalityNumber(char *str)
 {
     int strLen = (int) strlen(str);
     int i;
-    if(str[0] != '-' && !isnumber(str[0]))
+    if(str[0] != '-' && !isdigit(str[0]))
         /*illigial char inside a number*/
         return ILLIGAL_CHAR_IN_NUMBER;
     for(i=1;i<strLen;i++)
     {
-        if(!isnumber(str[i]))
+        if(!isdigit(str[i]))
             return ILLIGAL_CHAR_IN_NUMBER;
     }
     return SUCCESS;
@@ -257,6 +276,7 @@ Exeption parseKindCode(char *command, char *line, Word **output, int *L)
 {
     int i, commandFound;
     char *firstOp = NULL, *secondOp = NULL, *temp;
+    commandFound = NOT_FOUND;
     /*check if the command exists*/
     for(i = 0; i < AMOUNT_OF_COMMANDS && commandFound == NOT_FOUND; i++)
     {
@@ -286,7 +306,7 @@ Exeption parseKindCode(char *command, char *line, Word **output, int *L)
 
     }
     /*check if the command is from the second group of 1 operands, this group opcodes are 4,5 and 7 to 13 */
-    if(commandFound == OPCODE_NOT || commandFound == OPCODE_CLR || (commandFound >= OPCODE_INC && commandFound <= OPCODE_JSR))
+    else if(commandFound == OPCODE_NOT || commandFound == OPCODE_CLR || (commandFound >= OPCODE_INC && commandFound <= OPCODE_JSR))
     {
         /*one operand*/
         *L = 2; /*this type of operands need 2 words*/
@@ -295,7 +315,7 @@ Exeption parseKindCode(char *command, char *line, Word **output, int *L)
             return MISSING_OPERATORS;
     }
     /*check if the command is from the third group of 0 operands, this group opcodes are 14 and 15*/
-    if(commandFound == 14 || commandFound == 15)
+    else
     {
         /*zero operands*/
         *L = 1; /*this type of operands need 1 word*/
@@ -335,7 +355,7 @@ void buildFirstWordCode(Word **output, int opCode, char *firstOp, char *secondOp
         (cword->command).sourceOp = 0;
     }
     /*add the word to output*/
-    *output[0]=cword;
+    *output[0] = *cword;
 }
 
 int operandFormat(char *operand)
@@ -348,22 +368,22 @@ int operandFormat(char *operand)
         return ADDR_MODE_DIRECT; /*this is not a register or a number so it must be label*/
 }
 
-Exeption parseExtern(char *restOfLine,Table **symbolTable)
+Exeption parseExtern(char *restOfLine,Table *symbolTable)
 {
     char *label, *temp;
     Exeption ret;
     label = strtok(restOfLine, " \t\n");
-    ret = checkLabel(label, symbolTable);
+    ret = checkLable(label, symbolTable);
     if(ret != SUCCESS)
         return ret;/*error return*/
     else
     {
         /*add the label into the symbol table*/
-        TableRow *trLabel = makeLable(EXTERNAL, label, K_EXTERN);
+        TableRow *trLabel = makeLabel(EXTERNAL, label, K_EXTERN);
         TableRow *tr;
-        tr = (*symbolTable)->head;
-        if((*symbolTable)->head == NULL)/*if there is no head put in the head*/
-            (*symbolTable)->head = trLabel;
+        tr = symbolTable->head;
+        if(symbolTable->head == NULL)/*if there is no head put in the head*/
+            symbolTable->head = trLabel;
         else /*there is head put in last*/
         {
             while(tr->next != NULL)/*finds the lasst row in the table*/

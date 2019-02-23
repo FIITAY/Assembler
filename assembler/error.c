@@ -46,5 +46,9 @@ void errorHandle(char *line, Exeption exep)
             break;
         case ILLIGAL_REGISTER_FORMAT:
             printf("       register format is @r# when # is a number between 0 to 7");
+            break;
+        case OPERAND_LABEL_NOT_FOUND:
+            printf("       the label refered as operand not found in the symbol table");
+            break;
     }
 }

@@ -5,10 +5,10 @@
 #define OPERAND_TARGET 0
 #define OPERAND_SOURCE 1
 
-Exeption finishEncodinCode(char *, Word *, Table **, int *);
-Exeption finishEntery(char *, Table **);
+Exeption finishEncodinCode(char *, Word [], Table *, Table * ,int *);
+Exeption finishEntery(char *, Table *);
 
-Exeption doSecondLoop(FILE *fp, Word binaryCode[], Table **symbolTable)
+Exeption doSecondLoop(FILE *fp, Word binaryCode[], Table *symbolTable, Table *externalTable)
 {
     int IC = 0; /*step 1*/
     char line[MAX_CHARS_IN_LINE];
@@ -19,10 +19,11 @@ Exeption doSecondLoop(FILE *fp, Word binaryCode[], Table **symbolTable)
         Exeption currRet = SUCCESS;
         if(line[0] != COMMENT_MARKER)
         {
+            enum lineKind kind;
             restOfLine = strchr(line, ':');
             if(restOfLine == NULL)
                 restOfLine = line;
-            enum lineKind kind = checkKind(strtok(restOfLine, " \t\n"));
+            kind = checkKind(strtok(restOfLine, " \t\n"));
             if(kind == K_ENTERY) /*step 5*/
             {
                 /*step 6*/
@@ -33,7 +34,7 @@ Exeption doSecondLoop(FILE *fp, Word binaryCode[], Table **symbolTable)
             if(kind == K_CODE)
             {
                 /*step 7- finish the coding of the 2 and 3 words*/
-                currRet = finishEncodinCode(strtok(NULL, ""),binaryCode,symbolTable, &IC);
+                currRet = finishEncodinCode(strtok(NULL, ""),binaryCode,symbolTable, externalTable ,&IC);
                 if(currRet != SUCCESS)
                     errorHandle(line, currRet);
             }
@@ -49,11 +50,11 @@ Exeption doSecondLoop(FILE *fp, Word binaryCode[], Table **symbolTable)
 
 TableRow *copyRow(TableRow *);
 
-Exeption finishEntery(char *restOfLine, Table **symbolTable)
+Exeption finishEntery(char *restOfLine, Table *symbolTable)
 {
     char *label = strtok(restOfLine, " \t\n");
     int found = VAL_FALSE;
-    TableRow *tr = (*symbolTable)->head;
+    TableRow *tr = symbolTable->head;
     if(label == NULL)
         return MISSING_OPERATORS;
     /*search for the label in the symbol table*/
@@ -73,9 +74,9 @@ Exeption finishEntery(char *restOfLine, Table **symbolTable)
     return SUCCESS;
 }
 
-Exeption buildParmWord(char *, Table **, Word *, int);
+Exeption buildParmWord(char *, Table *, Word *, Table *, int, int *);
 
-Exeption finishEncodinCode(char *restOfLine, Word binaryCode[], Table **symbolTable, int *IC)
+Exeption finishEncodinCode(char *restOfLine, Word binaryCode[], Table *symbolTable, Table *externalsTable ,int *IC)
 {
     struct commandWord cword = binaryCode[*IC].command;
     char *operand;
@@ -89,7 +90,8 @@ Exeption finishEncodinCode(char *restOfLine, Word binaryCode[], Table **symbolTa
         if(cword.targetOp == ADDR_MODE_IMIDIATE && !(cword.opcode == OPCODE_CMP || cword.opcode == OPCODE_PRN))
             return ILLIGAL_PARATMETER;
         operand = strtok(restOfLine, " ,\n\t");
-        buildParmWord(operand, symbolTable, &binaryCode[*IC], OPERAND_TARGET);
+        buildParmWord(operand, symbolTable, &binaryCode[*IC], externalsTable ,OPERAND_TARGET, IC);
+
         /*if the first parameter was register but the second wasnt a regirst put 0 in the place of the second. */
         if(cword.targetOp == ADDR_MODE_REGISTER && cword.sourceOp != ADDR_MODE_REGISTER)
             (binaryCode[*IC].reg).sourceOp = 0;
@@ -104,15 +106,17 @@ Exeption finishEncodinCode(char *restOfLine, Word binaryCode[], Table **symbolTa
         if(cword.opcode == OPCODE_LEA && cword.sourceOp != ADDR_MODE_DIRECT)
             return ILLIGAL_PARATMETER;
         operand = strtok(NULL, " \n\t");
-        buildParmWord(operand, symbolTable, &binaryCode[*IC], OPERAND_SOURCE);
+        buildParmWord(operand, symbolTable, &binaryCode[*IC], externalsTable, OPERAND_SOURCE, IC);
         /*if the second parameter was register but the first wasnt a regirst put 0 in the place of the first. */
         if(cword.sourceOp == ADDR_MODE_REGISTER && cword.targetOp != ADDR_MODE_REGISTER)
             (binaryCode[*IC].reg).destOp = 0;
         *IC = *IC + 1; /*move ic one word forward*/
     }
+
+    return SUCCESS;
 }
 
-Exeption buildParmWord(char *operand, Table **symbolTable, Word *output, int regMode)
+Exeption buildParmWord(char *operand, Table *symbolTable, Word *output, Table *externalsTable, int regMode, int *IC)
 {
     int opFormat = operandFormat(operand);
     Exeption ret = SUCCESS;
@@ -134,7 +138,53 @@ Exeption buildParmWord(char *operand, Table **symbolTable, Word *output, int reg
     }
     if(opFormat == ADDR_MODE_DIRECT)
     {
-
+        /*labels*/
+        /*firstly find the operan in the symbol table*/
+        TableRow *trLabel = symbolTable->head;
+        while(trLabel!= NULL && strcmp(operand, trLabel->content) != 0)
+            trLabel = trLabel->next;
+        if(trLabel == NULL)
+            return OPERAND_LABEL_NOT_FOUND;
+        /*trLabel have the line of the header that is the operand*/
+        /*put the respective type inside the output word- if the label is not external type R if the label is external type E*/
+        (output->parmNum).type = (trLabel->symbolKind != K_EXTERN) ? TYPE_R : TYPE_E;
+        if(trLabel->symbolKind != K_EXTERN)
+        {
+            /*copy the name of the label to the output word*/
+            int i,mask;
+            mask =1;
+            for(i=0;i<NUMBER_BIT_LEN; i++)
+            {
+                (output->parmNum).number = trLabel->name & mask;
+                mask = mask << 1;
+            }
+        }
+        else
+        {
+            TableRow *tr = externalsTable->head;
+            TableRow *ext = (TableRow *)malloc(sizeof(TableRow));
+            /*extern is 0*/
+            (output->parmNum).number = 0;
+            /*make ext*/
+            ext->name = *IC;
+            strcpy(ext->content, trLabel->content);
+            ext->is_entery = trLabel->is_entery;
+            ext->symbolKind = K_EXTERN;
+            ext->next = NULL;
+            /*add ext to the table*/
+            if(externalsTable->head == NULL)
+            {
+                /*if there is no head make the curreent external as head*/
+                externalsTable->head = ext;
+            }
+            else
+            {
+                /*find last row and add the ext row after*/
+                while(tr->next != NULL)
+                    tr = tr->next;
+                tr->next = ext;
+            }
+        }
     }
     if(opFormat == ADDR_MODE_IMIDIATE)
     {
