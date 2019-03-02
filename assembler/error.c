@@ -1,10 +1,20 @@
+/*File: error.c
+ *Author: Itay Finci
+ *
+ *in this file i will program the function that takes the error and output it to the user
+ */
+
+/*includes that im using in this file*/
 #include "error.h"
 #include <stdio.h>
-/*error handler*/
+
+/*error handler- takes the line and the exep and output it in the following structure:
+ Exeption at: LINE
+        ERROR MESSAGE*/
 void errorHandle(char *line, Exeption exep)
 {
-    printf("\nExeption at: %s", line);
-    switch(exep)
+    printf("\nExeption at: %s", line);/*print the first line of the message*/
+    switch(exep)/*choose the rigth message for this exeption*/
     {
         case SUCCESS:
             break;
@@ -53,5 +63,15 @@ void errorHandle(char *line, Exeption exep)
         case EXTRA_COMMA:
             printf("       there is more than 1 comma between two operands.\n");
             break;
+        case EMPTY_LABEL:
+            printf("       cant have empty label.\n");
+            break;
+        case LABLE_LONGER_THEN_ALLOW:
+            printf("       lable max length is 31 characters.\n");
+            break;
+        case ILLIGAL_STARTING_LETTER:
+            printf("       the first letter of label must be letter and not number.\n");
+            break;
+
     }
 }

@@ -1,3 +1,10 @@
+/*File: assembler.c
+ *Author: Itay Finci
+ *
+ *in this file i will handle the main function that will loop over the files that sent as arguments and compile them.
+ */
+
+/*includes that will be used in this file*/
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -9,12 +16,11 @@
 #include "word.h"
 #include "error.h"
 
-/*
- *This is the main file that will contain the main loops and main function calls.
- */
-
+/*declaring the compile function that will be programed in the end.*/
 void fileCompiler(char *);
 
+/*this is the main function that will be called automaticly when the project is running, will take the files from the argv and compile
+ *them.*/
 int main(int argc, char *argv[])
 {
     if(argc == 1) /*check if there is more arguments then the program name*/
@@ -36,9 +42,11 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+/*declaring functions that will be used in the compile but dont need them in the main*/
 void freeTables(Table *);
 void freeDataTables(DataTable *);
 
+/*this function is for debug only*/
 void printBinary(Word binaryCode[], int length);
 
 /*this function gets a file name and make the first and second loops*/
@@ -52,6 +60,7 @@ void fileCompiler(char *fileName)
     Table symbolTable;
     Table externalTable;
     DataTable dataTable;
+    int IC, DC;
 
     fileWithExtention = (char *)malloc(strlen(fileName) + 3); /*malloc place for the file name*/;
     strcpy(fileWithExtention, fileName); /*copy the file name*/
@@ -59,35 +68,39 @@ void fileCompiler(char *fileName)
 
     /*open the file*/
     fp = fopen(fileWithExtention, "r");
-    if(fp == NULL)
+    if(fp == NULL)/*check if the file was opned successfully*/
     {
-        printf("can't open file: %s\n", fileWithExtention);
+        printf("can't open file: %s\n", fileWithExtention);/*there was error opening the file*/
         return ;
     }
+
     /*file open success*/
     symbolTable.head = NULL;
     externalTable.head = NULL;
     dataTable.head = NULL;
-    ret  = doFirstLoop(fp, binaryCode, &symbolTable, &dataTable);
+    /*do the first loop of the compile procidure over the file*/
+    ret  = doFirstLoop(fp, binaryCode, &symbolTable, &dataTable, &IC, &DC);
     if(ret != ERROR_RETURN)/*do the secondLoop only if the first pass returned SUCCESS*/
     {
         /*reopen file at the start*/
         fclose(fp);
         fp = fopen(fileWithExtention, "r");
-        if(fp == NULL)
+        if(fp == NULL)/*check if the file was opned successfully*/
         {
-            printf("can't open file: %s\n", fileWithExtention);
+            printf("can't open file: %s\n", fileWithExtention);/*there was error opening the file*/
             return;
         }
+        /*do the second loop of the compile procidure over the file*/
         eRet  = doSecondLoop(fp, binaryCode, &symbolTable, &externalTable);
     }
-
+    /*if the two loops was finished whithout any errors, make the output files, else skip making the output files*/
     if(eRet == SUCCESS)
     {
-        /*all of comile finished without errors, make output files*/
+        /*for debug, print the binary*/
         printBinary(binaryCode, ret);
     }/*if there was a errors dont make output files*/
 
+    /*free the memory that was malloced*/
     freeTables(&symbolTable);
     freeTables(&externalTable);
     freeDataTables(&dataTable);
@@ -95,8 +108,11 @@ void fileCompiler(char *fileName)
     /*finished the compile of the code*/
 }
 
+
+/*for debug only*/
 void print_as_binary(unsigned int a);
 
+/*for debug only*/
 void printBinary(Word binaryCode[], int length)
 {
     int i=0;
@@ -106,7 +122,7 @@ void printBinary(Word binaryCode[], int length)
     }
 }
 
-/*print unsinged int numbers as binary numbers. */
+/*for debug only*/
 void print_as_binary(unsigned int a)
 {
     int numbits = 12; /*take the maximum size of int in byte and convert it to bit */
@@ -122,6 +138,7 @@ void print_as_binary(unsigned int a)
 
 void freeRow(TableRow *);
 
+/*function that will take a table and free it using an recursive function.*/
 void freeTables(Table *t)
 {
     TableRow *tr = t->head;
@@ -129,15 +146,17 @@ void freeTables(Table *t)
         freeRow(tr);
 }
 
+/*this function take a table and free the memory using recursive logic*/
 void freeRow(TableRow *tr)
 {
-    if(tr->next != NULL)
-        freeRow(tr->next);
-    free(tr);
+    if(tr->next != NULL)/*check if there is next row*/
+        freeRow(tr->next);/*free the next row*/
+    free(tr);/*when returning from the recursive calles, free this row*/
 }
 
 void freeDRow(DataTableRow *);
 
+/*function that will take a dataTable and free it using an recursive function.*/
 void freeDataTables(DataTable *t)
 {
     DataTableRow *dtr = t->head;
@@ -145,9 +164,10 @@ void freeDataTables(DataTable *t)
         freeDRow(dtr);
 }
 
+/*this function take a dataTable and free the memory using recursive logic*/
 void freeDRow(DataTableRow *dtr)
 {
-    if(dtr->next != NULL)
-        freeDRow(dtr->next);
-    free(dtr);
+    if(dtr->next != NULL)/*check if there is next row*/
+        freeDRow(dtr->next);/*free the next row*/
+    free(dtr);/*when returning from the recursive calles, free this row*/
 }

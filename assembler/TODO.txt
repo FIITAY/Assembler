@@ -1,0 +1,4 @@
+1. currently if a there is a lable and then a empty line enters it as type code, need to think what i do if the line after is not code (it is data or string).
+2. ERROR: if there is a .data to parse and there is ' ' or '\t' between the datas insted of ',' will still work. need to insure that there is ','.
+3. check what happens when there is label before an .entery or .extern and then reference somewhere else in the file. (that label should be ignored and wont get into the symbol table).
+4. remake the commands table to be more modular.

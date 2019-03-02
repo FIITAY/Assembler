@@ -6,7 +6,7 @@ NC='\033[1;37m' # No Color
 
 
 tests="a b c d \
-	e"
+	e f g h i j"
 
 for f in $tests; do
 	echo -ne ${NC}"test  $f \t\t\t"

@@ -1,2 +1,0 @@
-1.currently if a there is a lable and then a empty line enters it as type code, need to think what i do if the line after is not code (it is data or string).
-2. repair: if there is 2 registers save 1 word and not 2 words for the parameters word
