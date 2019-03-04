@@ -104,7 +104,7 @@ Exeption finishEncodinCode(char *restOfLine, Word binaryCode[], Table *symbolTab
 {
     struct commandWord cword = binaryCode[*IC].command; /*make cword point to the command first word*/
     char *operand;
-
+    Exeption ret = SUCCESS;
     *IC = *IC + 1; /*move ic one word forward to skip command*/
 
     if(cword.targetOp != 0)
@@ -116,8 +116,9 @@ Exeption finishEncodinCode(char *restOfLine, Word binaryCode[], Table *symbolTab
         operand = strtok(restOfLine, " ,\t\n"); /*take the first word and put it inside operand*/
         restOfLine = strtok(NULL, ""); /*make restOfLine the rest Of the line without the first parm*/
         /*finish the encoding of the second and first word*/
-        buildParmWord(operand, symbolTable, &binaryCode[*IC], externalsTable ,OPERAND_TARGET, IC);
-
+        ret = buildParmWord(operand, symbolTable, &binaryCode[*IC], externalsTable ,OPERAND_TARGET, IC);
+        if(ret != SUCCESS)
+            return ret;
         /*if the first parameter was register but the second wasnt a regirst put 0 in the place of the second. */
         if(cword.targetOp == ADDR_MODE_REGISTER && cword.sourceOp != ADDR_MODE_REGISTER)
             (binaryCode[*IC].reg).sourceOp = 0;
@@ -134,14 +135,16 @@ Exeption finishEncodinCode(char *restOfLine, Word binaryCode[], Table *symbolTab
         /*make operand equal to the next word from restOfLine*/
         operand = strtok(restOfLine, " \n\t");
         /*finish encoding the second parm*/
-        buildParmWord(operand, symbolTable, &binaryCode[*IC], externalsTable, OPERAND_SOURCE, IC);
+        ret = buildParmWord(operand, symbolTable, &binaryCode[*IC], externalsTable, OPERAND_SOURCE, IC);
+        if(ret != SUCCESS)
+            return ret;
         /*if the second parameter was register but the first wasnt a regirst put 0 in the place of the first. */
         if(cword.sourceOp == ADDR_MODE_REGISTER && cword.targetOp != ADDR_MODE_REGISTER)
             (binaryCode[*IC].reg).destOp = 0;
         *IC = *IC + 1; /*move ic one word forward*/
     }
 
-    return SUCCESS; /*if there wasnt any error return success*/
+    return ret; /*if there wasnt any error return success*/
 }
 
 /*this function take operand and encode his binary word*/
