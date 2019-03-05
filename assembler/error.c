@@ -72,6 +72,8 @@ void errorHandle(char *line, Exeption exep)
         case ILLIGAL_STARTING_LETTER:
             printf("       the first letter of label must be letter and not number.\n");
             break;
-
+        case LABEL_BEFORE_EMPTY_LINE:
+            printf("       you are not allowed to have lable before empty line.\n");
+            break;
     }
 }

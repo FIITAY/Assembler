@@ -26,7 +26,8 @@ typedef enum {SUCCESS,
     EXTRA_COMMA,
     EMPTY_LABEL,
     LABLE_LONGER_THEN_ALLOW,
-    ILLIGAL_STARTING_LETTER
+    ILLIGAL_STARTING_LETTER,
+    LABEL_BEFORE_EMPTY_LINE
 } Exeption;
 
 /*declaration of the error handle function that prints the right error message*/

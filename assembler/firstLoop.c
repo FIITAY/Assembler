@@ -71,7 +71,7 @@ int comment(char *line)
     strcpy(temp,line); /*copy the line*/
     firstWord = strtok(temp, " \t"); /*take the first word in the line and put it inside firstWord*/
     if(firstWord[0] == COMMENT_MARKER)/*if the first char that is not white space is comment marker return true*/
-        return VAL_FALSE;
+        return VAL_TRUE;
     return VAL_FALSE;/*else false*/
 }
 

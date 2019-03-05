@@ -1,4 +1,5 @@
-1. currently if a there is a lable and then a empty line enters it as type code, need to think what i do if the line after is not code (it is data or string).
+1. ERROR: if there is a label and then empty line need to return error!!
 2. ERROR: if there is a .data to parse and there is ' ' or '\t' between the datas insted of ',' will still work. need to insure that there is ','.
-3. check what happens when there is label before an .entery or .extern and then reference somewhere else in the file. (that label should be ignored and wont get into the symbol table).
+3. MUST : in error messeges add the name of the file
 4. remake the commands table to be more modular.
+5. check what happends when there is space before ':' of label

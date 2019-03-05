@@ -11,5 +11,5 @@ L1:	  	inc K
 	  	bne LOOP
 END:  	stop
 STR:  	.string "abcdef"
-LENTGH: .data 6,-9,15
+LENGTH: .data 6,-9,15
 K:		.data 22

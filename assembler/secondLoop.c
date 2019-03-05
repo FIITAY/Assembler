@@ -133,7 +133,7 @@ Exeption finishEncodinCode(char *restOfLine, Word binaryCode[], Table *symbolTab
         if(cword.opcode == OPCODE_LEA && cword.sourceOp != ADDR_MODE_DIRECT)
             return ILLIGAL_PARATMETER;
         /*make operand equal to the next word from restOfLine*/
-        operand = strtok(restOfLine, " \n\t");
+        operand = strtok(restOfLine, " ,\n\t");
         /*finish encoding the second parm*/
         ret = buildParmWord(operand, symbolTable, &binaryCode[*IC], externalsTable, OPERAND_SOURCE, IC);
         if(ret != SUCCESS)
@@ -150,7 +150,7 @@ Exeption finishEncodinCode(char *restOfLine, Word binaryCode[], Table *symbolTab
 /*this function take operand and encode his binary word*/
 Exeption buildParmWord(char *operand, Table *symbolTable, Word *output, Table *externalsTable, int regMode, int *IC)
 {
-    int opFormat = operandFormat(operand);/*find the format of the operand*/
+    int opFormat = operandFormat(operand); /*find the format of the operand*/
     Exeption ret = SUCCESS; /*start by thinking that the parse was successful*/
     if(opFormat == ADDR_MODE_REGISTER) /*if the operand is register*/
     {

@@ -6,7 +6,8 @@ NC='\033[1;37m' # No Color
 
 
 tests="a b c d \
-	e f g h i j k k1"
+	e f g h i j k k1 k3 k4 labelEmptyLine \
+	good_booklet ps good2"
 
 for f in $tests; do
 	echo -ne ${NC}"test  $f \t\t\t"

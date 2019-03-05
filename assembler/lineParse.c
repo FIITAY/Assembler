@@ -116,8 +116,9 @@ int parseLine(char *line, Word **output, Table *symbolTable, DataTable *data, in
         /*empty line, check if there is label or not*/
         if(label != NULL)
         {
-            /*enter label as code*/
-            trLabel = makeLabel(*IC, label, K_CODE);
+            /*there is label, return error*/
+            errorHandle(originalLine, LABEL_BEFORE_EMPTY_LINE);
+            L = ERROR_RETURN;
         }
     }
 
@@ -386,7 +387,12 @@ Exeption parseKindCode(char *command, char *line, Word **output, int *L)
                 memmove(secondOp, temp, strlen(temp));
             }
             else
-                secondOp = strtok(NULL, " \t\n"); /*take the next word from strtok*/
+            {
+                temp = strtok(NULL, " \t\n"); /*take the next word from strtok*/
+                secondOp = (char *)malloc((strlen(temp))*sizeof(char));
+                memmove(secondOp, temp, strlen(temp));
+            }
+
 
             if(secondOp == NULL)/*if there is not second op return error*/
                 return MISSING_OPERATORS;

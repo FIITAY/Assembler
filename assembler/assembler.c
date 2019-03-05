@@ -49,6 +49,9 @@ void freeDataTables(DataTable *);
 /*this function is for debug only*/
 void printBinary(Word binaryCode[], int length);
 
+void exportExternalTable(Table extT, char *fileName);
+void exportEnteryTable(Table symT, char *fileName);
+
 /*this function gets a file name and make the first and second loops*/
 void fileCompiler(char *fileName)
 {
@@ -61,8 +64,9 @@ void fileCompiler(char *fileName)
     Table externalTable;
     DataTable dataTable;
     int IC, DC;
+    TableRow *tr;
 
-    fileWithExtention = (char *)malloc(strlen(fileName) + 3); /*malloc place for the file name*/;
+    fileWithExtention = (char *)malloc((strlen(fileName) + 3)*sizeof(char)); /*malloc place for the file name*/;
     strcpy(fileWithExtention, fileName); /*copy the file name*/
     strcat(fileWithExtention, ".as"); /*add the end .as to the file name at the end of the string*/
 
@@ -90,14 +94,31 @@ void fileCompiler(char *fileName)
             printf("can't open file: %s\n", fileWithExtention);/*there was error opening the file*/
             return;
         }
+#if 0
+        /*test*/
+        tr = symbolTable.head;
+        while(tr != NULL)
+        {
+            printf("%s\t%d\n",tr->content,tr->name);
+            tr = tr->next;
+        }
+        /*test*/
+#endif
         /*do the second loop of the compile procidure over the file*/
         eRet  = doSecondLoop(fp, binaryCode, &symbolTable, &externalTable);
+        fclose(fp);
     }
     /*if the two loops was finished whithout any errors, make the output files, else skip making the output files*/
     if(eRet == SUCCESS)
     {
         /*for debug, print the binary*/
         printBinary(binaryCode, ret);
+#if 0
+        /*export the files needed*/
+        exportExternalTable(externalTable, fileName);
+        exportEnteryTable(symbolTable, fileName);
+        /*need to make the export of the .ob file*/
+#endif
     }/*if there was a errors dont make output files*/
 
     /*free the memory that was malloced*/
@@ -134,6 +155,69 @@ void print_as_binary(unsigned int a)
         temp = a >> (i-1);/*takes the most right bit*/
         printf("%d", temp & 1);/*if the bit is 1 will print 1 else will print 0*/
     }
+}
+
+/*this function gets externals table and print it into the file named <fileName>.ext*/
+void exportExternalTable(Table extT, char *fileName)
+{
+    TableRow *tr = extT.head;
+    char *fileWithExtention;
+    FILE *fp;
+    /*open file*/
+    fileWithExtention = (char *)malloc((strlen(fileName) + 4)*sizeof(char)); /*malloc place for the file name*/;
+    strcpy(fileWithExtention, fileName); /*copy the file name*/
+    strcat(fileWithExtention, ".ext"); /*add the end .as to the file name at the end of the string*/
+    fp = fopen(fileWithExtention, "w"); /*open the file as write mode*/
+    if(fp != NULL)
+    {
+        while(tr != NULL)
+        {
+            /*print into the file*/
+            fprintf(fp,"%s\t%d\n",tr->content,tr->name);
+            tr = tr->next;
+        }
+    }
+    else
+    {
+        printf("cannot write to file: %s", fileWithExtention);/*there was error opening the new files*/
+        return; /*dont need to colose the file so return now*/
+    }
+    fclose(fp);
+
+}
+
+/*this function gets the symbol table and if there are entery labels export them into <fileName>.ent*/
+void exportEnteryTable(Table symT, char *fileName)
+{
+    FILE *fp = NULL;
+    TableRow *tr = symT.head;
+    char *fileWithExtention;
+    while(tr != NULL)
+    {
+        if(tr->is_entery == VAL_TRUE)
+        {
+            /*only if there is need to print entery open the file to be sure that there is need for this file*/
+            if(fp == NULL)
+            {
+                /*open file*/
+                fileWithExtention = (char *)malloc((strlen(fileName) + 4)*sizeof(char)); /*malloc place for the file name*/;
+                strcpy(fileWithExtention, fileName); /*copy the file name*/
+                strcat(fileWithExtention, ".ent"); /*add the end .as to the file name at the end of the string*/
+                fp = fopen(fileWithExtention, "w"); /*open the file into fp*/
+                if(fp == NULL)
+                {
+                    printf("cannot write to file: %s", fileWithExtention);/*there was error opening the new files*/
+                    return; /*cant continue the rest of the file*/
+                }
+            }
+            /*print into the file*/
+            fprintf(fp,"%s\t%d\n",tr->content,tr->name);
+        }
+        tr = tr->next;
+    }
+    /*make sure to close the file if needed*/
+    if(fp != NULL)
+        fclose(fp);
 }
 
 void freeRow(TableRow *);
