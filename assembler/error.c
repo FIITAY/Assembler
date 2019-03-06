@@ -11,9 +11,9 @@
 /*error handler- takes the line and the exep and output it in the following structure:
  Exeption at: LINE
         ERROR MESSAGE*/
-void errorHandle(char *line, Exeption exep)
+void errorHandle(char *fileName, char *line, Exeption exep)
 {
-    printf("\nExeption at: %s", line);/*print the first line of the message*/
+    printf("\nFile %s ,Exeption at- %s", fileName, line);/*print the first line of the message*/
     switch(exep)/*choose the rigth message for this exeption*/
     {
         case SUCCESS:

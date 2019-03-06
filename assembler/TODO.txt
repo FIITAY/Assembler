@@ -1,4 +1,3 @@
-1. ERROR: if there is a label and then empty line need to return error!!
 2. ERROR: if there is a .data to parse and there is ' ' or '\t' between the datas insted of ',' will still work. need to insure that there is ','.
 3. MUST : in error messeges add the name of the file
 4. remake the commands table to be more modular.

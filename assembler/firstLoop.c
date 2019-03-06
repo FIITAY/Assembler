@@ -19,7 +19,7 @@ void finishTable(Table *, int);
 void finishData(DataTable *, int *, Word []);
 
 /*do the first loop over the file fp*/
-int doFirstLoop(FILE *fp, Word binaryCode[], Table *symbolTable, DataTable *dataTable, int *instructCount, int *dataCount)
+int doFirstLoop(char *fileName, FILE *fp, Word binaryCode[], Table *symbolTable, DataTable *dataTable, int *instructCount, int *dataCount)
 {
     char line[MAX_CHARS_IN_LINE];
     int ret = SUCCESS; /*start the loop thinking that there wont be any errors*/
@@ -33,8 +33,10 @@ int doFirstLoop(FILE *fp, Word binaryCode[], Table *symbolTable, DataTable *data
         Word *parseOutput;
         if(comment(line) != VAL_TRUE)
         {
-            L = parseLine(line, &parseOutput,symbolTable, dataTable, &IC, &DC);
-            if(L != ERROR_RETURN || L!=0)
+            L = parseLine(fileName, line, &parseOutput,symbolTable, dataTable, &IC, &DC);
+            if(L == ERROR_RETURN)
+                ret = ERROR_RETURN;/*random error because there was error in line*/
+            else if(L != 0)
             {
                 /*add it to the binaryCode array*/
                 for(i=0;i<L;i++)
@@ -44,8 +46,7 @@ int doFirstLoop(FILE *fp, Word binaryCode[], Table *symbolTable, DataTable *data
                 }
                 /*finished cycle, bringing the IC to IC+L (step 14)*/
                 IC = IC+L;
-            }else
-                ret = ERROR_RETURN;/*random error because there was error in line*/
+            }
         }
         /*comment do nothing*/
     }

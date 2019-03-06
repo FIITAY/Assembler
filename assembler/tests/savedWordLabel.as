@@ -1,0 +1,12 @@
+entery:
+string:
+data:
+extern:
+mov:
+cmp:
+add:
+sub:
+clr:
+jsr:
+rts:
+stop:

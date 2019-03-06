@@ -13,7 +13,7 @@
 #include "DataTable.h"
 /*the only accssesable function,
 will get the file to compile and pointer to the final binary array and the tables*/
-int doFirstLoop(FILE *, Word *, Table *, DataTable *, int *, int *);
+int doFirstLoop(char *,FILE *, Word *, Table *, DataTable *, int *, int *);
 /*this function get a line and check if this line is comment line*/
 int comment(char []);
 

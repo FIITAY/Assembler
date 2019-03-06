@@ -31,6 +31,6 @@ typedef enum {SUCCESS,
 } Exeption;
 
 /*declaration of the error handle function that prints the right error message*/
-void errorHandle(char *, Exeption);
+void errorHandle(char *, char *, Exeption);
 
 #endif

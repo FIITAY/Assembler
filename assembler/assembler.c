@@ -66,7 +66,7 @@ void fileCompiler(char *fileName)
     int IC, DC;
     TableRow *tr;
 
-    fileWithExtention = (char *)malloc((strlen(fileName) + 3)*sizeof(char)); /*malloc place for the file name*/;
+    fileWithExtention = (char *)malloc((strlen(fileName) + 4)*sizeof(char)); /*malloc place for the file name*/
     strcpy(fileWithExtention, fileName); /*copy the file name*/
     strcat(fileWithExtention, ".as"); /*add the end .as to the file name at the end of the string*/
 
@@ -83,7 +83,7 @@ void fileCompiler(char *fileName)
     externalTable.head = NULL;
     dataTable.head = NULL;
     /*do the first loop of the compile procidure over the file*/
-    ret  = doFirstLoop(fp, binaryCode, &symbolTable, &dataTable, &IC, &DC);
+    ret  = doFirstLoop(fileWithExtention, fp, binaryCode, &symbolTable, &dataTable, &IC, &DC);
     if(ret != ERROR_RETURN)/*do the secondLoop only if the first pass returned SUCCESS*/
     {
         /*reopen file at the start*/
@@ -105,7 +105,7 @@ void fileCompiler(char *fileName)
         /*test*/
 #endif
         /*do the second loop of the compile procidure over the file*/
-        eRet  = doSecondLoop(fp, binaryCode, &symbolTable, &externalTable);
+        eRet  = doSecondLoop(fileWithExtention, fp, binaryCode, &symbolTable, &externalTable);
         fclose(fp);
     }
     /*if the two loops was finished whithout any errors, make the output files, else skip making the output files*/
@@ -163,26 +163,27 @@ void exportExternalTable(Table extT, char *fileName)
     TableRow *tr = extT.head;
     char *fileWithExtention;
     FILE *fp;
-    /*open file*/
-    fileWithExtention = (char *)malloc((strlen(fileName) + 4)*sizeof(char)); /*malloc place for the file name*/;
-    strcpy(fileWithExtention, fileName); /*copy the file name*/
-    strcat(fileWithExtention, ".ext"); /*add the end .as to the file name at the end of the string*/
-    fp = fopen(fileWithExtention, "w"); /*open the file as write mode*/
-    if(fp != NULL)
+    while(tr != NULL)
     {
-        while(tr != NULL)
+        if(fp == NULL)
         {
-            /*print into the file*/
-            fprintf(fp,"%s\t%d\n",tr->content,tr->name);
-            tr = tr->next;
+            /*open file*/
+            fileWithExtention = (char *)malloc((strlen(fileName) + 5)*sizeof(char)); /*malloc place for the file name*/;
+            strcpy(fileWithExtention, fileName); /*copy the file name*/
+            strcat(fileWithExtention, ".ext"); /*add the end .as to the file name at the end of the string*/
+            fp = fopen(fileWithExtention, "w"); /*open the file as write mode*/
+            if(fp == NULL)
+            {
+                printf("cannot write to file: %s", fileWithExtention);/*there was error opening the new files*/
+                return; /*cant continue the rest of the file*/
+            }
         }
+        /*print into the file*/
+        fprintf(fp,"%s\t%d\n",tr->content,tr->name);
+        tr = tr->next;
     }
-    else
-    {
-        printf("cannot write to file: %s", fileWithExtention);/*there was error opening the new files*/
-        return; /*dont need to colose the file so return now*/
-    }
-    fclose(fp);
+    if(fp != NULL)
+        fclose(fp);
 
 }
 
@@ -200,7 +201,7 @@ void exportEnteryTable(Table symT, char *fileName)
             if(fp == NULL)
             {
                 /*open file*/
-                fileWithExtention = (char *)malloc((strlen(fileName) + 4)*sizeof(char)); /*malloc place for the file name*/;
+                fileWithExtention = (char *)malloc((strlen(fileName) + 5)*sizeof(char)); /*malloc place for the file name*/;
                 strcpy(fileWithExtention, fileName); /*copy the file name*/
                 strcat(fileWithExtention, ".ent"); /*add the end .as to the file name at the end of the string*/
                 fp = fopen(fileWithExtention, "w"); /*open the file into fp*/

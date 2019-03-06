@@ -18,7 +18,7 @@ Exeption finishEncodinCode(char *, Word [], Table *, Table * ,int *);
 Exeption finishEntery(char *, Table *);
 
 /*this function gets opened file, binary code, symbol table and do the second loop over it*/
-Exeption doSecondLoop(FILE *fp, Word binaryCode[], Table *symbolTable, Table *externalTable)
+Exeption doSecondLoop(char *fileName, FILE *fp, Word binaryCode[], Table *symbolTable, Table *externalTable)
 {
     int IC = 0; /*step 1*/
     char line[MAX_CHARS_IN_LINE];
@@ -51,14 +51,14 @@ Exeption doSecondLoop(FILE *fp, Word binaryCode[], Table *symbolTable, Table *ex
                 /*step 6- finish encoding the entery into the symbolTable*/
                 currRet = finishEntery(strtok(NULL,"\n"), symbolTable);
                 if(currRet != SUCCESS) /*if thee was error print the error*/
-                    errorHandle(originalLine, currRet);
+                    errorHandle(fileName, originalLine, currRet);
             }
             if(kind == K_CODE) /*if the kind is code this is the parse*/
             {
                 /*step 7- finish the coding of the 2 and 3 words*/
                 currRet = finishEncodinCode(strtok(NULL,"\n"),binaryCode,symbolTable, externalTable ,&IC);
                 if(currRet != SUCCESS) /*if thee was error print the error*/
-                    errorHandle(originalLine, currRet);
+                    errorHandle(fileName, originalLine, currRet);
             }
             /*if kind is K_DATA \ K_EXTERN \ K_STRING or step 6 or step 9 go to here*/
         }
@@ -104,47 +104,74 @@ Exeption finishEncodinCode(char *restOfLine, Word binaryCode[], Table *symbolTab
 {
     struct commandWord cword = binaryCode[*IC].command; /*make cword point to the command first word*/
     char *operand;
+    int currIC;   /* will be used locally, as we move the global after each param */
     Exeption ret = SUCCESS;
+    Exeption error = SUCCESS;
+
     *IC = *IC + 1; /*move ic one word forward to skip command*/
 
     if(cword.targetOp != 0)
     {
         /*check targetOp*/
-        /*check if the type of paramter is ligal whith the currenct command*/
-        if(cword.targetOp == ADDR_MODE_IMIDIATE && !(cword.opcode == OPCODE_CMP || cword.opcode == OPCODE_PRN))
-            return ILLIGAL_PARATMETER;
-        operand = strtok(restOfLine, " ,\t\n"); /*take the first word and put it inside operand*/
-        restOfLine = strtok(NULL, ""); /*make restOfLine the rest Of the line without the first parm*/
-        /*finish the encoding of the second and first word*/
-        ret = buildParmWord(operand, symbolTable, &binaryCode[*IC], externalsTable ,OPERAND_TARGET, IC);
-        if(ret != SUCCESS)
-            return ret;
-        /*if the first parameter was register but the second wasnt a regirst put 0 in the place of the second. */
-        if(cword.targetOp == ADDR_MODE_REGISTER && cword.sourceOp != ADDR_MODE_REGISTER)
-            (binaryCode[*IC].reg).sourceOp = 0;
+        currIC = *IC;
         /*if both of the parameters are registers dont move the ic forward because it uses the same word*/
         if(!(cword.targetOp == ADDR_MODE_REGISTER && cword.sourceOp == ADDR_MODE_REGISTER))
             *IC = *IC + 1; /*move ic one word forward*/
+
+        /*check if the type of paramter is ligal whith the currenct command*/
+        if(cword.targetOp == ADDR_MODE_IMIDIATE && !(cword.opcode == OPCODE_CMP || cword.opcode == OPCODE_PRN))
+        {
+            error =  ILLIGAL_PARATMETER;
+        }
+        else
+        {
+            operand = strtok(restOfLine, " ,\t\n"); /*take the first word and put it inside operand*/
+            restOfLine = strtok(NULL, ""); /*make restOfLine the rest Of the line without the first parm*/
+            /*finish the encoding of the second and first word*/
+            ret = buildParmWord(operand, symbolTable, &binaryCode[currIC], externalsTable ,OPERAND_TARGET, &currIC);
+            if(ret != SUCCESS)
+            {
+                error =  ret;
+            }
+            else
+            {
+                /*if the first parameter was register but the second wasnt a regirst put 0 in the place of the second. */
+                if(cword.targetOp == ADDR_MODE_REGISTER && cword.sourceOp != ADDR_MODE_REGISTER)
+                    (binaryCode[currIC].reg).sourceOp = 0;
+            }
+        }
     }
     if(cword.sourceOp != 0)
     {
         /*check sourceOp*/
+        currIC = *IC;
+        *IC = *IC + 1; /*move ic one word forward*/
         /*check if the type of paramter is ligal whith the currenct command*/
         if(cword.opcode == OPCODE_LEA && cword.sourceOp != ADDR_MODE_DIRECT)
-            return ILLIGAL_PARATMETER;
-        /*make operand equal to the next word from restOfLine*/
-        operand = strtok(restOfLine, " ,\n\t");
-        /*finish encoding the second parm*/
-        ret = buildParmWord(operand, symbolTable, &binaryCode[*IC], externalsTable, OPERAND_SOURCE, IC);
-        if(ret != SUCCESS)
-            return ret;
-        /*if the second parameter was register but the first wasnt a regirst put 0 in the place of the first. */
-        if(cword.sourceOp == ADDR_MODE_REGISTER && cword.targetOp != ADDR_MODE_REGISTER)
-            (binaryCode[*IC].reg).destOp = 0;
-        *IC = *IC + 1; /*move ic one word forward*/
+        {
+            error =  ILLIGAL_PARATMETER;
+        }
+        else
+        {
+            /*make operand equal to the next word from restOfLine*/
+            operand = strtok(restOfLine, " ,\n\t");
+            /*finish encoding the second parm*/
+            ret = buildParmWord(operand, symbolTable, &binaryCode[currIC], externalsTable, OPERAND_SOURCE, &currIC);
+            if(ret != SUCCESS)
+            {
+                error =  ret;
+            }
+            else
+            {
+                /*if the second parameter was register but the first wasnt a regirst put 0 in the place of the first. */
+                if(cword.sourceOp == ADDR_MODE_REGISTER && cword.targetOp != ADDR_MODE_REGISTER)
+                    (binaryCode[currIC].reg).destOp = 0;
+            }
+        }
+
     }
 
-    return ret; /*if there wasnt any error return success*/
+    return error; /*if there wasnt any error return success*/
 }
 
 /*this function take operand and encode his binary word*/
