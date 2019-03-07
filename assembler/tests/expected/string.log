@@ -1,0 +1,6 @@
+
+File tests/string.as ,Exeption at- STR1: .string abc"
+       forgot the " sign in the start or the end of string data.
+
+File tests/string.as ,Exeption at- STR2: .string "abc
+       forgot the " sign in the start or the end of string data.

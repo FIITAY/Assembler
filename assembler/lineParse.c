@@ -5,13 +5,14 @@
  *there will be some fuctions that will be opened externally because the second loop need them too.
  */
 
+#include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 #include "lineParse.h"
 
 /*this value is the value that i will put as the IC of lables that are externals*/
 #define EXTERNAL -1
-#define AMOUNT_SAVED_WORDS 20 /*length of the array*/
+#define AMOUNT_SAVED_WORDS 27 /*length of the array*/
 #define AMOUNT_OF_COMMANDS 16 /*there are 16 commands in the assembly*/
 
 /*the command name list*/
@@ -19,7 +20,8 @@ const char *COMMAND_NAME_WORDS[] = {"mov", "cmp", "add", "sub", "not", "clr", "l
  "bne", "red", "prn", "jsr", "rts", "stop"};
 /*the list of save words in this lang*/
 const char *SAVEDWORDS[] = {"mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec", "jmp",
- "bne", "red", "prn", "jsr", "rts", "stop", "data", "string", "entery", "extern"};
+ "bne", "red", "prn", "jsr", "rts", "stop", "data", "string", "entery", "extern",
+    "r1", "r2", "r3", "r4", "r5", "r6", "r7"};
 
 /*this function gets a line and output the parsing of it into the respective data struct, return value is L.*/
 int parseLine(char *fileName, char *line, Word **output, Table *symbolTable, DataTable *data, int *IC, int *DC)
@@ -68,7 +70,10 @@ int parseLine(char *fileName, char *line, Word **output, Table *symbolTable, Dat
             /*encode data/string to the table*/
             restOfLine = strtok(NULL,""); /*gets the rest of the line*/
             /*parse the data from the rest of the line and put it into the dataTable*/
-            ret = parseKindData(restOfLine, data, DC, kind);
+            if(kind == K_DATA)
+                ret = parseKindData(restOfLine, data, DC);
+            if(kind == K_STRING)
+                ret = parseKindString(restOfLine, data, DC);
             if(ret != SUCCESS)/*if there was error parsing, return error and go to the finish proccess*/
             {
                 errorHandle(fileName, originalLine, ret);
@@ -213,11 +218,13 @@ enum lineKind checkKind(char *firstWord)
     return K_CODE; /*if the first word isnt one of the above return kind code*/
 }
 
-/*this function gets a the rest of the line and parse lines of data into the dataTable*/
-Exeption parseKindData(char *line, DataTable *data, int *DC, enum lineKind kind)
+Exeption checkValidStringRow(char *);
+
+/*this function gets a string data line and parse it into the dataTable*/
+Exeption parseKindString(char *line, DataTable *data, int *DC)
 {
     DataTableRow *dtr = data->head; /*point to the last place to add the new word to*/
-    char *str;
+    char *str, *cpyLine;
     int number,j,mask;
     Exeption ret;
 
@@ -228,58 +235,29 @@ Exeption parseKindData(char *line, DataTable *data, int *DC, enum lineKind kind)
             dtr = dtr->next;
     }
 
-    str = strtok(line, " ,\n\t"); /*gets the first parm*/
-
-    /*loop while there is another word*/
+    ret = checkValidStringRow(line);
+    if(ret != SUCCESS)
+        return ret;
+    str = strtok(line, "\"\n"); /*gets the string*/
     while(str != NULL)
     {
         int i, sizeOfDw;
         Word *dw;
-        switch(kind)
+        /*parse the data in the word into dw as string*/
+        sizeOfDw = (int) strlen(str);
+        dw = (Word *)malloc((sizeOfDw+1)*sizeof(Word));/*for the amount of chars inside the string + \0*/
+        for(i=0; i< sizeOfDw;i++)
         {
-            case K_DATA:/*parse kind data*/
-                /*firstly check that all of the chars in str are either number or "-" or "."*/
-                ret = checkLegalityNumber(str);
-                if(ret != SUCCESS)
-                    return ret;/*there was error dont parse the data*/
-                number = atoi(str);/*parse the string to double*/
-                /*parse the data in word into dw as number*/
-                dw = (Word *)malloc(sizeof(Word));
-                mask = 1;
-                for(j=0; j<12;j++)/*copy the 12 bits of the char into the data word*/
-                {
-                    (dw->data).data |= (number & mask);
-                    mask = mask << 1;
-                }
-                break;
-            case K_STRING:/*parse kind string*/
-                /*parse the data in the word into dw as string*/
-                sizeOfDw = (int) strlen(str) - 2;/*remove the count of the starting " and the closing "*/
-                if(str[0] == '\"' && str[sizeOfDw+1]== '\"') /*only if this is string and now floating text*/
-                {
-                    dw = (Word *)malloc((sizeOfDw+1)*sizeof(Word));/*for the amount of chars inside the string + \0*/
-                    for(i=0; i< sizeOfDw;i++)
-                    {
-                        int mask = 1,j;
-                        ((dw+i)->data).data = 0;
-                        for(j=0; j<12;j++)/*copy the 12 bits of the char into the data word*/
-                        {
-                            ((dw+i)->data).data |= (str[i+1] & mask);
-                            mask = mask << 1;
-                        }
-                    }
-                    /*add \0*/
-                    (dw+sizeOfDw)->data.data = 0; /*value of \0 is 0*/
-                }
-                else if(str[sizeOfDw+1]!='\"')
-                    return FORGOT_QUETATION;/*the user forgot the quetatoin sign in the start or the end, its not comment*/
-                break;
-            case K_EXTERN:
-            case K_ENTERY:
-            case K_CODE:
-            case K_NULL:
-                break; /*not the right function*/
+            int mask = 1,j;
+            ((dw+i)->data).data = 0;
+            for(j=0; j<12;j++)/*copy the 12 bits of the char into the data word*/
+            {
+                ((dw+i)->data).data |= (str[i] & mask);
+                mask = mask << 1;
+            }
         }
+        /*add \0*/
+        (dw+sizeOfDw)->data.data = 0; /*value of \0 is 0*/
         /*add dw into the end of the data table*/
         for(i=0; i<sizeOfDw+1; i++) /*will loop the amount of chars in the string +1 for the \0*/
         {
@@ -301,7 +279,102 @@ Exeption parseKindData(char *line, DataTable *data, int *DC, enum lineKind kind)
                 dtr = dtr->next;
             }
         }
-        str = strtok(NULL," ,\n\t");/*gets the next data word*/
+        str = strtok(NULL, "\"\n"); /*gets the next string*/
+    }
+    return SUCCESS; /*there wasnt any errors return success*/
+}
+
+/*check that the format of the line is valid:
+ "string" [, "string"]* */
+Exeption checkValidStringRow(char *str)
+{
+    int i = 0;
+    int strLen = strlen(str);
+    int foundString = VAL_FALSE;
+    while(str[i] != '\0')
+    {
+        /*skip white spaces*/
+        while(i < strLen && isspace(str[i]))
+            i++;
+        /*check if reached the EOF*/
+        if(i == strLen)
+            return (foundString == VAL_TRUE) ? SUCCESS : MISSING_OPERATORS;
+
+        if(str[i] != '"')
+            return FORGOT_QUETATION;
+        i++;
+        while(i < strLen && str[i] != '"')
+            i++;
+        if(str[i] != '"')
+            return FORGOT_QUETATION;
+        foundString = VAL_TRUE;
+        i++;
+        /*skip white spaces*/
+        while(i < strLen && isspace(str[i]))
+            i++;
+        if(i == strLen || str[i] == '\0')
+            return SUCCESS;
+        if(str[i] != ',')
+            return MISSING_COMMA;
+        i++;
+    }
+    return SUCCESS;
+}
+
+/*this function gets a the rest of the line and parse lines of data into the dataTable*/
+Exeption parseKindData(char *line, DataTable *data, int *DC)
+{
+    DataTableRow *dtr = data->head; /*point to the last place to add the new word to*/
+    char *str, *cpyLine;
+    int number,j,mask;
+    Exeption ret;
+
+    /*get dtr to the last row*/
+    if(data->head != NULL)
+    {
+        while(dtr->next != NULL)
+            dtr = dtr->next;
+    }
+
+    str = strtok(line, ",\n"); /*gets the first parm*/
+
+    /*loop while there is another word*/
+    while(str != NULL)
+    {
+        int i;
+        Word *dw;
+        char *endPtr;
+        /*make new row*/
+        DataTableRow *newRow = (DataTableRow *)malloc(sizeof(DataTableRow));
+        /*firstly check that all of the chars in str are either number or "-" or "."*/
+        ret = checkLegalityNumber(str);
+        if(ret != SUCCESS)
+            return ret;/*there was error dont parse the data*/
+        number = atoi(str);/*parse the string to double*/
+        newRow->DC = *DC;/*set the dc*/
+        *DC = *DC + 1; /*increase the dc value*/
+        newRow->next = NULL; /*set the next row as null*/
+        /*parse the data in word into dw as number*/
+        dw = &(newRow->content);
+        (dw->data).data = 0;
+        mask = 1;
+        for(j=0; j<12;j++)/*copy the 12 bits of the char into the data word*/
+        {
+            (dw->data).data |= (number & mask);
+            mask = mask << 1;
+        }
+        /*add new row to the data table*/
+        if(data->head == NULL)
+        {/*if there is no head set it as the head*/
+            data->head = newRow;
+            dtr = data->head;
+        }
+        else
+        {/*there is head set it as the last row*/
+            dtr->next = newRow;
+            dtr = dtr->next;
+        }
+        str = strtok(NULL,",\n");/*gets the next data word*/
     }
     return SUCCESS; /*there wasnt any errors return success*/
 }
@@ -310,14 +383,28 @@ Exeption parseKindData(char *line, DataTable *data, int *DC, enum lineKind kind)
 Exeption checkLegalityNumber(char *str)
 {
     int strLen = (int) strlen(str); /*the length of str into strLen*/
-    int i;
-    if(str[0] != '-' && str[0] != '+' && !isdigit(str[0]))/*if the first letter is not + or - or digit return error*/
+    int i = 0;
+    /*skip white spaces*/
+    while(isspace(str[i]) && i < strLen)
+        i++;
+    if(str[i] == '\0')
+        return MISSING_OPERATORS;
+    if(str[i] != '-' && str[i] != '+' && !isdigit(str[i]))/*if the first letter is not + or - or digit return error*/
         /*illigial char inside a number*/
         return ILLIGAL_CHAR_IN_NUMBER;
-    for(i=1;i<strLen;i++)
+    else
+        i++;
+    /*forward i while the char at str is digit*/
+    while(isdigit(str[i]) && i < strLen)
+        i++;
+    /*skip white spaces*/
+    while(isspace(str[i]) && i < strLen)
+        i++;
+    if(i < strLen)
     {
-        if(!isdigit(str[i]))/*if any of the numbers isnt a digit return error*/
-            return ILLIGAL_CHAR_IN_NUMBER;
+        if(str[i] != '-' && str[i] != '+' && !isdigit(str[i]))
+            return  ILLIGAL_CHAR_IN_NUMBER;
+        return MISSING_COMMA;
     }
     return SUCCESS;/*this is legal number, return success*/
 }
@@ -353,15 +440,22 @@ Exeption parseKindCode(char *command, char *line, Word **output, int *L)
         if(temp == NULL)/*if temp is null there is no rest of line after firstOp*/
         {
             temp = (char *)malloc(strlen(firstOp)*sizeof(char)); /*malloc place for temp*/
+            
             strcpy(temp,firstOp); /*make a copy of firstOp*/
             if(strchr(temp, ',') != NULL) /*if there is ',' in the string the two operators are there*/
             {
-                firstOp = strtok(firstOp, ","); /*make the firstOp without the secondOp*/
+                firstOp = strtok(firstOp, " \t,"); /*make the firstOp without the secondOp*/
+                if(firstOp == NULL)/*if there is no firstOp return error*/
+                    return MISSING_OPERATORS;
                 strtok(temp, ","); /*remove the firstOp from temp*/
                 temp2 = strtok(NULL,""); /*gets the part after the comma from the strtok*/
-                /*copy the secondOp into his var*/
-                secondOp = (char *)malloc((strlen(temp2))*sizeof(char));
-                memmove(secondOp, temp2, strlen(temp2));
+                if(temp2 != NULL)
+                {
+                    /*copy the secondOp into his var*/
+                    secondOp = (char *)malloc((strlen(temp2))*sizeof(char));
+                    memmove(secondOp, temp2, strlen(temp2));
+                }else
+                    secondOp = NULL; /*if temp2 is null secondop is null*/
             }
             free(temp);/*free the uneeded temp var*/
             if(secondOp == NULL) /*if there is not second op return error*/
@@ -371,6 +465,8 @@ Exeption parseKindCode(char *command, char *line, Word **output, int *L)
         }
         else /*temp != NULL*/
         {
+            if(strlen(firstOp) == 1 && firstOp[0] == ',')
+                return MISSING_OPERATORS; /*if firstOp is only comma then a operator is missing*/
             if(temp[0] != ',' && firstOp[strlen(firstOp)-1] != ',' )/*if the last char in the first operand is comman or the first of the second ther is no missing comma*/
                 return MISSING_COMMA;
             if(temp[0] == ',' && firstOp[strlen(firstOp)-1] == ',' )/*there is extra comma (2 commas)*/
@@ -389,15 +485,23 @@ Exeption parseKindCode(char *command, char *line, Word **output, int *L)
             else
             {
                 temp = strtok(NULL, " \t\n"); /*take the next word from strtok*/
-                secondOp = (char *)malloc((strlen(temp))*sizeof(char));
-                memmove(secondOp, temp, strlen(temp));
+                if(temp != NULL)
+                {
+                    secondOp = (char *)malloc((strlen(temp))*sizeof(char));
+                    memmove(secondOp, temp, strlen(temp));
+                }else
+                    secondOp = NULL; /*if there wasnt any word in temp make secondOp null*/
+
             }
 
 
             if(secondOp == NULL)/*if there is not second op return error*/
                 return MISSING_OPERATORS;
+            if(strcmp(secondOp,",") == 0 && strtok(NULL, " \t\n") != NULL)
+                return EXTRA_COMMA; /*check if there is continue to the line there is extra comma*/
             if(strchr(secondOp,',') != NULL)
-                return EXTRA_COMMA; /*already removed 1 comma, any extra found comma is illigal*/
+                return GARBUIGE_AT_THE_END; /*already removed 1 comma, any extra found comma is illigal*/
+
         }
         /*check if the two operator types are both regirsters.*/
         if(operandFormat(firstOp) == ADDR_MODE_REGISTER && operandFormat(secondOp) == ADDR_MODE_REGISTER)
@@ -412,13 +516,15 @@ Exeption parseKindCode(char *command, char *line, Word **output, int *L)
         if(firstOp == NULL) /*if firstOp is missing return error*/
             return MISSING_OPERATORS;
         if(strchr(firstOp, ',') != NULL)
-            return EXTRA_COMMA;
+            return GARBUIGE_AT_THE_END; /*extra comma/extra chars*/
     }
     /*check if the command is from the third group of 0 operands, this group opcodes are 14 and 15*/
     else
     {
         /*zero operands*/
         *L = 1; /*this type of operands need 1 word*/
+        if(strtok(line, " \t\n") != NULL)
+            return GARBUIGE_AT_THE_END; /*there is extra chars that should not be there*/
     }
 
     /*malloc place to put the bit words into */

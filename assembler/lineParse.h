@@ -26,7 +26,9 @@ enum lineKind checkKind(char *);
 /*parse the first word of kind code */
 Exeption parseKindCode(char *, char *, Word **, int *);
 /*parse data into the dataTable*/
-Exeption parseKindData(char *, DataTable *, int *, enum lineKind );
+Exeption parseKindData(char *, DataTable *, int *);
+/*parse string into the dataTable*/
+Exeption parseKindString(char *, DataTable *, int *);
 /*make table row from given data*/
 TableRow *makeLabel(int, char *, enum lineKind);
 /*parse kind extern into the symbolTable*/

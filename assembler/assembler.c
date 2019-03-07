@@ -162,7 +162,7 @@ void exportExternalTable(Table extT, char *fileName)
 {
     TableRow *tr = extT.head;
     char *fileWithExtention;
-    FILE *fp;
+    FILE *fp = NULL;
     while(tr != NULL)
     {
         if(fp == NULL)

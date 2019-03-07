@@ -31,7 +31,7 @@ void errorHandle(char *fileName, char *line, Exeption exep)
             printf("       illigal command name.\n");
             break;
         case MISSING_OPERATORS:
-            printf("       missing command operators.\n");
+            printf("       missing command operands.\n");
             break;
         case MISSING_COMMA:
             printf("       missing a comma between operators.\n");

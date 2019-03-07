@@ -22,7 +22,7 @@ typedef struct dataTableRow
 /*defining the table as a liked list of rows*/
 typedef struct
 {
-    DataTableRow* head;
+    DataTableRow *head;
 }DataTable;
 
 #endif
