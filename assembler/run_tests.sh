@@ -20,4 +20,5 @@ for f in $tests; do
 	else
 		echo -e ${RED}failed${NC}
 	fi
+	rm -f tests/$f.{log,ent,ext,ob}
 done

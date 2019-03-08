@@ -15,6 +15,7 @@
 #include "DataTable.h"
 #include "word.h"
 #include "error.h"
+#include "base64.h"
 
 /*declaring the compile function that will be programed in the end.*/
 void fileCompiler(char *);
@@ -51,6 +52,7 @@ void printBinary(Word binaryCode[], int length);
 
 void exportExternalTable(Table extT, char *fileName);
 void exportEnteryTable(Table symT, char *fileName);
+void exportBinaryTable(Word [], char *, int, int, int);
 
 /*this function gets a file name and make the first and second loops*/
 void fileCompiler(char *fileName)
@@ -64,7 +66,6 @@ void fileCompiler(char *fileName)
     Table externalTable;
     DataTable dataTable;
     int IC, DC;
-    TableRow *tr;
 
     fileWithExtention = (char *)malloc((strlen(fileName) + 4)*sizeof(char)); /*malloc place for the file name*/
     strcpy(fileWithExtention, fileName); /*copy the file name*/
@@ -113,12 +114,11 @@ void fileCompiler(char *fileName)
     {
         /*for debug, print the binary*/
         printBinary(binaryCode, ret);
-#if 0
         /*export the files needed*/
+        exportBinaryTable(binaryCode, fileName, ret, IC, DC);
         exportExternalTable(externalTable, fileName);
         exportEnteryTable(symbolTable, fileName);
         /*need to make the export of the .ob file*/
-#endif
     }/*if there was a errors dont make output files*/
 
     /*free the memory that was malloced*/
@@ -136,7 +136,7 @@ void print_as_binary(unsigned int a);
 /*for debug only*/
 void printBinary(Word binaryCode[], int length)
 {
-    int i=0;
+    int i;
     for (i=0; i<length; i++) {
         print_as_binary(binaryCode[i].data.data);
         printf("\n");
@@ -155,6 +155,32 @@ void print_as_binary(unsigned int a)
         temp = a >> (i-1);/*takes the most right bit*/
         printf("%d", temp & 1);/*if the bit is 1 will print 1 else will print 0*/
     }
+}
+
+void exportBinaryTable(Word binaryCode[], char *fileName, int length, int IC, int DC)
+{
+    FILE *fp = NULL;
+    char *fileWithExtention;
+    int i;
+    char out[3]; /*place for 2 chars and \0*/
+    /*open file*/
+    fileWithExtention = (char *)malloc((strlen(fileName) + 4)*sizeof(char)); /*malloc place for the file name*/;
+    strcpy(fileWithExtention, fileName); /*copy the file name*/
+    strcat(fileWithExtention, ".ob"); /*add the end .as to the file name at the end of the string*/
+    fp = fopen(fileWithExtention, "w"); /*open the file as write mode*/
+    if(fp == NULL)
+    {
+        printf("cannot write to file: %s", fileWithExtention);/*there was error opening the new files*/
+        return; /*cant continue the rest of the file*/
+    }
+    out[2] = '\0'; /*init string end*/
+    fprintf(fp, "%d %d\n", IC, DC); /*print the .ob header*/
+    for(i=0; i<length; i++)
+    {
+        turnToBase(binaryCode[i], out);
+        fprintf(fp, "%s\n", out);
+    }
+
 }
 
 /*this function gets externals table and print it into the file named <fileName>.ext*/
@@ -179,7 +205,7 @@ void exportExternalTable(Table extT, char *fileName)
             }
         }
         /*print into the file*/
-        fprintf(fp,"%s\t%d\n",tr->content,tr->name);
+        fprintf(fp,"%s\t%d\n",tr->content,LOAD_ADDR + tr->name);
         tr = tr->next;
     }
     if(fp != NULL)
@@ -212,7 +238,7 @@ void exportEnteryTable(Table symT, char *fileName)
                 }
             }
             /*print into the file*/
-            fprintf(fp,"%s\t%d\n",tr->content,tr->name);
+            fprintf(fp,"%s\t%d\n",tr->content,LOAD_ADDR + tr->name);
         }
         tr = tr->next;
     }
