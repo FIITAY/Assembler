@@ -104,71 +104,77 @@ Exeption finishEncodinCode(char *restOfLine, Word binaryCode[], Table *symbolTab
 {
     struct commandWord cword = binaryCode[*IC].command; /*make cword point to the command first word*/
     char *operand;
-    int currIC;   /* will be used locally, as we move the global after each param */
+    int currIC, i;   /* will be used locally, as we move the global after each param */
     Exeption ret = SUCCESS;
     Exeption error = SUCCESS;
 
     *IC = *IC + 1; /*move ic one word forward to skip command*/
 
-    if(cword.targetOp != 0)
-    {
-        /*check targetOp*/
-        currIC = *IC;
-        /*if both of the parameters are registers dont move the ic forward because it uses the same word*/
-        if(!(cword.targetOp == ADDR_MODE_REGISTER && cword.sourceOp == ADDR_MODE_REGISTER))
+    switch (cword.opcode) {
+        case OPCODE_MOV:
+        case OPCODE_CMP:
+        case OPCODE_ADD:
+        case OPCODE_SUB:
+        case OPCODE_LEA:
+            /*there are two args*/
+            currIC = *IC;
+            /*if both of the parameters are registers dont move the ic forward because it uses the same word*/
+            if(!(cword.targetOp == ADDR_MODE_REGISTER && cword.sourceOp == ADDR_MODE_REGISTER))
+                *IC = *IC + 1; /*move ic one word forward*/
+            if(cword.opcode == OPCODE_LEA && cword.sourceOp != ADDR_MODE_DIRECT)
+                error =  ILLIGAL_PARATMETER;
+            else
+            {
+                operand = strtok(restOfLine, " ,\t\n"); /*take the first word and put it inside operand*/
+                restOfLine = strtok(NULL, ""); /*make restOfLine the rest Of the line without the first parm*/
+                /*finish the encoding of the second and first word*/
+                ret = buildParmWord(operand, symbolTable, &binaryCode[currIC], externalsTable ,OPERAND_SOURCE, &currIC);
+                if(ret != SUCCESS)
+                    error =  ret;
+                else
+                {
+                    /*if the first parameter was register but the second wasnt a regirst put 0 in the place of the second. */
+                    if(cword.sourceOp == ADDR_MODE_REGISTER && cword.targetOp != ADDR_MODE_REGISTER)
+                        (binaryCode[currIC].reg).targetOp = 0;
+                }
+            }
+            /*fallthrow to handle target opearand*/
+        case OPCODE_NOT:
+        case OPCODE_CLR:
+        case OPCODE_INC:
+        case OPCODE_DEC:
+        case OPCODE_JMP:
+        case OPCODE_BNE:
+        case OPCODE_RED:
+        case OPCODE_PRN:
+        case OPCODE_JSR:
+            /*there is one arg*/
+            /*check targetOp*/
+            currIC = *IC;
             *IC = *IC + 1; /*move ic one word forward*/
-
-        /*check if the type of paramter is ligal whith the currenct command*/
-        if(cword.targetOp == ADDR_MODE_IMIDIATE && !(cword.opcode == OPCODE_CMP || cword.opcode == OPCODE_PRN))
-        {
-            error =  ILLIGAL_PARATMETER;
-        }
-        else
-        {
-            operand = strtok(restOfLine, " ,\t\n"); /*take the first word and put it inside operand*/
-            restOfLine = strtok(NULL, ""); /*make restOfLine the rest Of the line without the first parm*/
-            /*finish the encoding of the second and first word*/
-            ret = buildParmWord(operand, symbolTable, &binaryCode[currIC], externalsTable ,OPERAND_TARGET, &currIC);
-            if(ret != SUCCESS)
-            {
-                error =  ret;
-            }
+            /*check if the adreesing mode is legal*/
+            if((cword.opcode != OPCODE_PRN && cword.opcode != OPCODE_CMP) && cword.targetOp == ADDR_MODE_IMIDIATE)
+                error = ILLIGAL_PARATMETER;
             else
             {
-                /*if the first parameter was register but the second wasnt a regirst put 0 in the place of the second. */
-                if(cword.targetOp == ADDR_MODE_REGISTER && cword.sourceOp != ADDR_MODE_REGISTER)
-                    (binaryCode[currIC].reg).sourceOp = 0;
+                /*make operand equal to the next word from restOfLine*/
+                operand = strtok(restOfLine, " ,\n\t");
+                /*finish encoding the second parm*/
+                ret = buildParmWord(operand, symbolTable, &binaryCode[currIC], externalsTable, OPERAND_TARGET, &currIC);
+                if(ret != SUCCESS)
+                {
+                    error =  ret;
+                }
+                else
+                {
+                    /*if the second parameter was register but the first wasnt a regirst put 0 in the place of the first. */
+                    if(cword.targetOp == ADDR_MODE_REGISTER && cword.sourceOp != ADDR_MODE_REGISTER)
+                        (binaryCode[currIC].reg).sourceOp = 0;
+                }
             }
-        }
-    }
-    if(cword.sourceOp != 0)
-    {
-        /*check sourceOp*/
-        currIC = *IC;
-        *IC = *IC + 1; /*move ic one word forward*/
-        /*check if the type of paramter is ligal whith the currenct command*/
-        if(cword.opcode == OPCODE_LEA && cword.sourceOp != ADDR_MODE_DIRECT)
-        {
-            error =  ILLIGAL_PARATMETER;
-        }
-        else
-        {
-            /*make operand equal to the next word from restOfLine*/
-            operand = strtok(restOfLine, " ,\n\t");
-            /*finish encoding the second parm*/
-            ret = buildParmWord(operand, symbolTable, &binaryCode[currIC], externalsTable, OPERAND_SOURCE, &currIC);
-            if(ret != SUCCESS)
-            {
-                error =  ret;
-            }
-            else
-            {
-                /*if the second parameter was register but the first wasnt a regirst put 0 in the place of the first. */
-                if(cword.sourceOp == ADDR_MODE_REGISTER && cword.targetOp != ADDR_MODE_REGISTER)
-                    (binaryCode[currIC].reg).destOp = 0;
-            }
-        }
-
+            break;
+        default:
+            break;
     }
 
     return error; /*if there wasnt any error return success*/
@@ -182,15 +188,15 @@ Exeption buildParmWord(char *operand, Table *symbolTable, Word *output, Table *e
     if(opFormat == ADDR_MODE_REGISTER) /*if the operand is register*/
     {
         (output->reg).type= TYPE_A; /*the register mode is A*/
-        if(strlen(operand) == 3)/*the length of register name is 3 : @ r n*/
+        if(strlen(operand) == 3 && operand[0] == '@' && operand[1] == 'r')/*the length of register name is 3 : @ r n*/
         {
-            int regNumber = operand[2] - '0'; /*the third char of the operand is the number*/
-            if(regNumber < 0 || regNumber > 7) /*check if the number of the registor is legal*/
+            char regNumber = operand[2]; /*the third char of the operand is the number*/
+            if(!(regNumber >= '0' && regNumber <= '7')) /*check if the number of the registor is legal*/
                 return ILLIGAL_REGISTER_NUMBER;
             if(regMode == OPERAND_SOURCE) /*if the operand is source set the reg number is the source op*/
-                (output->reg).sourceOp = regNumber;
+                (output->reg).sourceOp = regNumber - '0';
             else /*set the regnumber in the destOp*/
-                (output->reg).destOp = regNumber;
+                (output->reg).targetOp = regNumber - '0';
         }
         else /*there is error in the format*/
             return ILLIGAL_REGISTER_FORMAT;

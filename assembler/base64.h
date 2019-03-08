@@ -7,6 +7,8 @@
 #ifndef BASE64
 #define BASE64
 
+#include "word.h"
+
 /*this function gets a word and output the base64 presentation into out, out need to already be malloced*/
 void turnToBase(Word, char *);
 

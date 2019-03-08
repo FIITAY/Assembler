@@ -1,3 +1,3 @@
-base64.o: base64.c word.h
+base64.o: base64.h word.h
 
 word.h:

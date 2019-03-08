@@ -13,7 +13,7 @@
         ERROR MESSAGE*/
 void errorHandle(char *fileName, char *line, Exeption exep)
 {
-    printf("\nFile %s ,Exeption at- %s", fileName, line);/*print the first line of the message*/
+    printf("\nFile %s, Exeption at- %s", fileName, line);/*print the first line of the message*/
     switch(exep)/*choose the rigth message for this exeption*/
     {
         case SUCCESS:

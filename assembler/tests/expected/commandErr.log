@@ -1,18 +1,18 @@
 
-File tests/commandErr.as ,Exeption at- mov @r3 ,
+File tests/commandErr.as, Exeption at- mov @r3 ,
        missing command operands.
 
-File tests/commandErr.as ,Exeption at- mov , @r3
+File tests/commandErr.as, Exeption at- mov , @r3
        missing command operands.
 
-File tests/commandErr.as ,Exeption at- prn
+File tests/commandErr.as, Exeption at- prn
        missing command operands.
 
-File tests/commandErr.as ,Exeption at- inc
+File tests/commandErr.as, Exeption at- inc
        missing command operands.
 
-File tests/commandErr.as ,Exeption at- add @r3, 
+File tests/commandErr.as, Exeption at- add @r3, 
        missing command operands.
 
-File tests/commandErr.as ,Exeption at- lea ,
+File tests/commandErr.as, Exeption at- lea ,
        missing command operands.

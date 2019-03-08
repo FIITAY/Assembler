@@ -5,7 +5,7 @@
  */
 
 #include <stdlib.h>
-#include "word.h"
+#include "base64.h"
 
 #define CHAR_PER_WORD 2
 #define BITS_PER_NUMBER 6

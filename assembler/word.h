@@ -23,9 +23,9 @@
 struct commandWord
 {
     unsigned int type     : ARE_LEN;
-    unsigned int sourceOp : OPERAND_LEN;
-    unsigned int opcode   : OPCODE_LEN;
     unsigned int targetOp : OPERAND_LEN;
+    unsigned int opcode   : OPCODE_LEN;
+    unsigned int sourceOp : OPERAND_LEN;
 };
 
 /*this struct represent a full 12 bit data word*/
@@ -38,8 +38,8 @@ struct dataWord
 struct regWord
 {
     unsigned int type     : ARE_LEN;
-    unsigned int sourceOp : REGISTER_LEN;
-    unsigned int destOp   : REGISTER_LEN;
+    unsigned int targetOp : REGISTER_LEN;
+    unsigned int sourceOp   : REGISTER_LEN;
 };
 
 /*this struct is for words that are mode (A,R,E) and number*/

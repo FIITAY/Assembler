@@ -549,14 +549,14 @@ void buildFirstWordCode(Word **output, int opCode, char *firstOp, char *secondOp
     /*set the operands mode in the word*/
     if(firstOp != NULL && secondOp != NULL) /*there are two word*/
     {
-        (cword->command).targetOp = operandFormat(firstOp); /*set the targetOp to the format of firstOp*/
-        (cword->command).sourceOp = operandFormat(secondOp); /*set the secondOp to the format if secondOp*/
+        (cword->command).sourceOp = operandFormat(firstOp); /*set the targetOp to the format of firstOp*/
+        (cword->command).targetOp = operandFormat(secondOp); /*set the secondOp to the format if secondOp*/
         free(secondOp);/*free the memory from secondOp*/
     }
     else if(firstOp != NULL && secondOp == NULL)/*there is firstOp and no secondOp*/
     {
-        (cword->command).sourceOp = operandFormat(firstOp); /*set the destOp to the format of firstOp*/
-        (cword->command).targetOp = 0; /*set targetOp to 0*/
+        (cword->command).targetOp = operandFormat(firstOp); /*set the destOp to the format of firstOp*/
+        (cword->command).sourceOp = 0; /*set targetOp to 0*/
     }
     else /*no operands- set both of the operands to 0*/
     {
