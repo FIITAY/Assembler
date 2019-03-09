@@ -17,20 +17,22 @@
 #define COMMENT_MARKER ';' /*as defined in the given information*/
 
 /*this opcodes are used in some test acroos the project*/
-#define OPCODE_MOV 0
-#define OPCODE_CMP 1
-#define OPCODE_ADD 2
-#define OPCODE_SUB 3
-#define OPCODE_NOT 4
-#define OPCODE_CLR 5
-#define OPCODE_LEA 6
-#define OPCODE_INC 7
-#define OPCODE_DEC 8
-#define OPCODE_JMP 9
-#define OPCODE_BNE 10
-#define OPCODE_RED 11
-#define OPCODE_PRN 12
-#define OPCODE_JSR 13
+enum commands {OPCODE_MOV=0,
+ OPCODE_CMP=1,
+ OPCODE_ADD=2,
+ OPCODE_SUB=3,
+ OPCODE_NOT=4,
+ OPCODE_CLR=5,
+ OPCODE_LEA=6,
+ OPCODE_INC=7,
+ OPCODE_DEC=8,
+ OPCODE_JMP=9,
+ OPCODE_BNE=10,
+ OPCODE_RED=11,
+ OPCODE_PRN=12,
+ OPCODE_JSR=13,
+ OPCODE_RTS=14,
+ OPCODE_STOP=15};
 
 /*thous are the given addressing mode for parameters*/
 #define ADDR_MODE_IMIDIATE 1

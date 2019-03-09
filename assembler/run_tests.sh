@@ -14,7 +14,7 @@ tests="a b c d \
 
 for f in $tests; do
 	echo -ne ${NC}"test  $f \t\t\t"
-	./assembler tests/$f > tests/$f.log
+	./assembler tests/$f &> tests/$f.log
 	cmp -s tests/$f.log tests/expected/$f.log
 	if [ $? -eq 0 ]; then
 		echo -e ${GREEN}passed${NC}
@@ -23,3 +23,7 @@ for f in $tests; do
 	fi
 	rm -f tests/$f.{log,ent,ext,ob}
 done
+
+cd tests
+../assembler $tests
+

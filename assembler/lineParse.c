@@ -224,8 +224,7 @@ Exeption checkValidStringRow(char *);
 Exeption parseKindString(char *line, DataTable *data, int *DC)
 {
     DataTableRow *dtr = data->head; /*point to the last place to add the new word to*/
-    char *str, *cpyLine;
-    int number,j,mask;
+    char *str;
     Exeption ret;
 
     /*get dtr to the last row*/
@@ -325,7 +324,7 @@ Exeption checkValidStringRow(char *str)
 Exeption parseKindData(char *line, DataTable *data, int *DC)
 {
     DataTableRow *dtr = data->head; /*point to the last place to add the new word to*/
-    char *str, *cpyLine;
+    char *str;
     int number,j,mask;
     Exeption ret;
 
@@ -341,9 +340,7 @@ Exeption parseKindData(char *line, DataTable *data, int *DC)
     /*loop while there is another word*/
     while(str != NULL)
     {
-        int i;
         Word *dw;
-        char *endPtr;
         /*make new row*/
         DataTableRow *newRow = (DataTableRow *)malloc(sizeof(DataTableRow));
         /*firstly check that all of the chars in str are either number or "-" or "."*/

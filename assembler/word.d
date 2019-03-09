@@ -1,1 +1,0 @@
-word.o: word.h

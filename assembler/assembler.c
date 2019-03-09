@@ -57,7 +57,7 @@ void exportBinaryTable(Word [], char *, int, int, int);
 /*this function gets a file name and make the first and second loops*/
 void fileCompiler(char *fileName)
 {
-    char *fileWithExtention;
+    char *fileWithExtention = NULL;
     int ret = SUCCESS;
     FILE *fp;
     Exeption eRet = SUCCESS;
@@ -95,16 +95,6 @@ void fileCompiler(char *fileName)
             printf("can't open file: %s\n", fileWithExtention);/*there was error opening the file*/
             return;
         }
-#if 0
-        /*test*/
-        tr = symbolTable.head;
-        while(tr != NULL)
-        {
-            printf("%s\t%d\n",tr->content,tr->name);
-            tr = tr->next;
-        }
-        /*test*/
-#endif
         /*do the second loop of the compile procidure over the file*/
         eRet  = doSecondLoop(fileWithExtention, fp, binaryCode, &symbolTable, &externalTable);
         fclose(fp);
@@ -122,6 +112,7 @@ void fileCompiler(char *fileName)
     }/*if there was a errors dont make output files*/
 
     /*free the memory that was malloced*/
+    free(fileWithExtention);
     freeTables(&symbolTable);
     freeTables(&externalTable);
     freeDataTables(&dataTable);
@@ -160,7 +151,7 @@ void print_as_binary(unsigned int a)
 void exportBinaryTable(Word binaryCode[], char *fileName, int length, int IC, int DC)
 {
     FILE *fp = NULL;
-    char *fileWithExtention;
+    char *fileWithExtention = NULL;
     int i;
     char out[3]; /*place for 2 chars and \0*/
     /*open file*/
@@ -180,6 +171,7 @@ void exportBinaryTable(Word binaryCode[], char *fileName, int length, int IC, in
         turnToBase(binaryCode[i], out);
         fprintf(fp, "%s\n", out);
     }
+    free(fileWithExtention);
 
 }
 
@@ -187,7 +179,7 @@ void exportBinaryTable(Word binaryCode[], char *fileName, int length, int IC, in
 void exportExternalTable(Table extT, char *fileName)
 {
     TableRow *tr = extT.head;
-    char *fileWithExtention;
+    char *fileWithExtention = NULL;
     FILE *fp = NULL;
     while(tr != NULL)
     {
@@ -210,6 +202,8 @@ void exportExternalTable(Table extT, char *fileName)
     }
     if(fp != NULL)
         fclose(fp);
+    if(fileWithExtention != NULL)
+        free(fileWithExtention);
 
 }
 
@@ -218,7 +212,7 @@ void exportEnteryTable(Table symT, char *fileName)
 {
     FILE *fp = NULL;
     TableRow *tr = symT.head;
-    char *fileWithExtention;
+    char *fileWithExtention = NULL;
     while(tr != NULL)
     {
         if(tr->is_entery == VAL_TRUE)
@@ -245,6 +239,8 @@ void exportEnteryTable(Table symT, char *fileName)
     /*make sure to close the file if needed*/
     if(fp != NULL)
         fclose(fp);
+    if(fileWithExtention != NULL)
+        free(fileWithExtention);
 }
 
 void freeRow(TableRow *);

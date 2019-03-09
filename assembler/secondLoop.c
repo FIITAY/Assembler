@@ -104,7 +104,7 @@ Exeption finishEncodinCode(char *restOfLine, Word binaryCode[], Table *symbolTab
 {
     struct commandWord cword = binaryCode[*IC].command; /*make cword point to the command first word*/
     char *operand;
-    int currIC, i;   /* will be used locally, as we move the global after each param */
+    int currIC;   /* will be used locally, as we move the global after each param */
     Exeption ret = SUCCESS;
     Exeption error = SUCCESS;
 

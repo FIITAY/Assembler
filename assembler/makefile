@@ -12,7 +12,7 @@ assembler: $(OBJS)
 
 # cleanup clean:
 clean:
-	rm *.o
+	rm -f *.o *.d *.gch
 
 .PHONY: tests
 tests: assembler
