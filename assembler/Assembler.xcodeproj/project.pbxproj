@@ -1,0 +1,222 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXFileReference section */
+		6696497B222A98390051E07F /* firstLoop.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = firstLoop.c; sourceTree = "<group>"; };
+		6696497C222A98390051E07F /* error.h.gch */ = {isa = PBXFileReference; lastKnownFileType = file; path = error.h.gch; sourceTree = "<group>"; };
+		6696497D222A98390051E07F /* firstLoop.d */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.dtrace; path = firstLoop.d; sourceTree = "<group>"; };
+		6696497E222A98390051E07F /* error.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = error.o; sourceTree = "<group>"; };
+		6696497F222A98390051E07F /* DataTable.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DataTable.h; sourceTree = "<group>"; };
+		66964980222A98390051E07F /* error.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = error.h; sourceTree = "<group>"; };
+		66964981222A98390051E07F /* assembler.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = assembler.o; sourceTree = "<group>"; };
+		66964982222A98390051E07F /* consts.h.gch */ = {isa = PBXFileReference; lastKnownFileType = file; path = consts.h.gch; sourceTree = "<group>"; };
+		66964983222A98390051E07F /* secondLoop.h.gch */ = {isa = PBXFileReference; lastKnownFileType = file; path = secondLoop.h.gch; sourceTree = "<group>"; };
+		66964984222A98390051E07F /* consts.d */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.dtrace; path = consts.d; sourceTree = "<group>"; };
+		66964985222A98390051E07F /* .DS_Store */ = {isa = PBXFileReference; lastKnownFileType = file; path = .DS_Store; sourceTree = "<group>"; };
+		66964986222A98390051E07F /* table.d */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.dtrace; path = table.d; sourceTree = "<group>"; };
+		66964987222A98390051E07F /* TODO.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = TODO.txt; sourceTree = "<group>"; };
+		66964988222A98390051E07F /* firstLoop.h.gch */ = {isa = PBXFileReference; lastKnownFileType = file; path = firstLoop.h.gch; sourceTree = "<group>"; };
+		66964989222A98390051E07F /* assembler */ = {isa = PBXFileReference; lastKnownFileType = file; path = assembler; sourceTree = "<group>"; };
+		6696498A222A98390051E07F /* base64.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = base64.o; sourceTree = "<group>"; };
+		6696498B222A98390051E07F /* makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = "<group>"; };
+		6696498C222A98390051E07F /* table.h.gch */ = {isa = PBXFileReference; lastKnownFileType = file; path = table.h.gch; sourceTree = "<group>"; };
+		6696498D222A98390051E07F /* secondLoop.d */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.dtrace; path = secondLoop.d; sourceTree = "<group>"; };
+		6696498E222A98390051E07F /* secondLoop.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = secondLoop.c; sourceTree = "<group>"; };
+		6696498F222A98390051E07F /* tests */ = {isa = PBXFileReference; lastKnownFileType = folder; path = tests; sourceTree = "<group>"; };
+		66964990222A98390051E07F /* lineParse.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = lineParse.o; sourceTree = "<group>"; };
+		66964991222A98390051E07F /* lineParse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lineParse.h; sourceTree = "<group>"; };
+		66964992222A98390051E07F /* word.d */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.dtrace; path = word.d; sourceTree = "<group>"; };
+		66964993222A98390051E07F /* lineParse.h.gch */ = {isa = PBXFileReference; lastKnownFileType = file; path = lineParse.h.gch; sourceTree = "<group>"; };
+		66964994222A98390051E07F /* DataTable.h.gch */ = {isa = PBXFileReference; lastKnownFileType = file; path = DataTable.h.gch; sourceTree = "<group>"; };
+		66964995222A98390051E07F /* assembler.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = assembler.c; sourceTree = "<group>"; };
+		66964996222A98390051E07F /* assembler.d */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.dtrace; path = assembler.d; sourceTree = "<group>"; };
+		66964997222A98390051E07F /* firstLoop.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = firstLoop.o; sourceTree = "<group>"; };
+		66964998222A98390051E07F /* firstLoop.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = firstLoop.h; sourceTree = "<group>"; };
+		66964999222A98390051E07F /* error.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = error.c; sourceTree = "<group>"; };
+		6696499A222A98390051E07F /* DataTable.d */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.dtrace; path = DataTable.d; sourceTree = "<group>"; };
+		6696499B222A98390051E07F /* error.d */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.dtrace; path = error.d; sourceTree = "<group>"; };
+		6696499C222A98390051E07F /* run_tests.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = run_tests.sh; sourceTree = "<group>"; };
+		6696499D222A98390051E07F /* base64.d */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.dtrace; path = base64.d; sourceTree = "<group>"; };
+		6696499E222A98390051E07F /* base64.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = base64.c; sourceTree = "<group>"; };
+		6696499F222A98390051E07F /* consts.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = consts.h; sourceTree = "<group>"; };
+		669649A0222A98390051E07F /* table.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = table.h; sourceTree = "<group>"; };
+		669649A1222A98390051E07F /* secondLoop.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = secondLoop.h; sourceTree = "<group>"; };
+		669649A2222A98390051E07F /* secondLoop.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = secondLoop.o; sourceTree = "<group>"; };
+		669649A3222A98390051E07F /* word.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = word.h; sourceTree = "<group>"; };
+		669649A4222A98390051E07F /* lineParse.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lineParse.c; sourceTree = "<group>"; };
+		669649A5222A98390051E07F /* lineParse.d */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.dtrace; path = lineParse.d; sourceTree = "<group>"; };
+		669649A6222A98390051E07F /* word.h.gch */ = {isa = PBXFileReference; lastKnownFileType = file; path = word.h.gch; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		66964975222A98390051E07F = {
+			isa = PBXGroup;
+			children = (
+				6696497B222A98390051E07F /* firstLoop.c */,
+				6696497C222A98390051E07F /* error.h.gch */,
+				6696497D222A98390051E07F /* firstLoop.d */,
+				6696497E222A98390051E07F /* error.o */,
+				6696497F222A98390051E07F /* DataTable.h */,
+				66964980222A98390051E07F /* error.h */,
+				66964981222A98390051E07F /* assembler.o */,
+				66964982222A98390051E07F /* consts.h.gch */,
+				66964983222A98390051E07F /* secondLoop.h.gch */,
+				66964984222A98390051E07F /* consts.d */,
+				66964985222A98390051E07F /* .DS_Store */,
+				66964986222A98390051E07F /* table.d */,
+				66964987222A98390051E07F /* TODO.txt */,
+				66964988222A98390051E07F /* firstLoop.h.gch */,
+				66964989222A98390051E07F /* assembler */,
+				6696498A222A98390051E07F /* base64.o */,
+				6696498B222A98390051E07F /* makefile */,
+				6696498C222A98390051E07F /* table.h.gch */,
+				6696498D222A98390051E07F /* secondLoop.d */,
+				6696498E222A98390051E07F /* secondLoop.c */,
+				6696498F222A98390051E07F /* tests */,
+				66964990222A98390051E07F /* lineParse.o */,
+				66964991222A98390051E07F /* lineParse.h */,
+				66964992222A98390051E07F /* word.d */,
+				66964993222A98390051E07F /* lineParse.h.gch */,
+				66964994222A98390051E07F /* DataTable.h.gch */,
+				66964995222A98390051E07F /* assembler.c */,
+				66964996222A98390051E07F /* assembler.d */,
+				66964997222A98390051E07F /* firstLoop.o */,
+				66964998222A98390051E07F /* firstLoop.h */,
+				66964999222A98390051E07F /* error.c */,
+				6696499A222A98390051E07F /* DataTable.d */,
+				6696499B222A98390051E07F /* error.d */,
+				6696499C222A98390051E07F /* run_tests.sh */,
+				6696499D222A98390051E07F /* base64.d */,
+				6696499E222A98390051E07F /* base64.c */,
+				6696499F222A98390051E07F /* consts.h */,
+				669649A0222A98390051E07F /* table.h */,
+				669649A1222A98390051E07F /* secondLoop.h */,
+				669649A2222A98390051E07F /* secondLoop.o */,
+				669649A3222A98390051E07F /* word.h */,
+				669649A4222A98390051E07F /* lineParse.c */,
+				669649A5222A98390051E07F /* lineParse.d */,
+				669649A6222A98390051E07F /* word.h.gch */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXLegacyTarget section */
+		6696497A222A98390051E07F /* Assembler */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION)";
+			buildConfigurationList = 669649A7222A98390051E07F /* Build configuration list for PBXLegacyTarget "Assembler" */;
+			buildPhases = (
+			);
+			buildToolPath = /usr/bin/make;
+			buildWorkingDirectory = /Users/itay/Desktop/projects/c/Assembler/Assembler;
+			dependencies = (
+			);
+			name = Assembler;
+			passBuildSettingsInEnvironment = 1;
+			productName = Assembler;
+		};
+/* End PBXLegacyTarget section */
+
+/* Begin PBXProject section */
+		66964976222A98390051E07F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+			};
+			buildConfigurationList = 66964979222A98390051E07F /* Build configuration list for PBXProject "Assembler" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 66964975222A98390051E07F;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				6696497A222A98390051E07F /* Assembler */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		66964977222A98390051E07F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COPY_PHASE_STRIP = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx10.6;
+			};
+			name = Debug;
+		};
+		66964978222A98390051E07F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COPY_PHASE_STRIP = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				SDKROOT = macosx10.6;
+			};
+			name = Release;
+		};
+		669649A8222A98390051E07F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				DEBUGGING_SYMBOLS = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = Assembler;
+			};
+			name = Debug;
+		};
+		669649A9222A98390051E07F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = Assembler;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		66964979222A98390051E07F /* Build configuration list for PBXProject "Assembler" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				66964977222A98390051E07F /* Debug */,
+				66964978222A98390051E07F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		669649A7222A98390051E07F /* Build configuration list for PBXLegacyTarget "Assembler" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				669649A8222A98390051E07F /* Debug */,
+				669649A9222A98390051E07F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 66964976222A98390051E07F /* Project object */;
+}

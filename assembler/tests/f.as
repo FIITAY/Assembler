@@ -1,0 +1,2 @@
+.extern W
+bne W

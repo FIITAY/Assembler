@@ -1,0 +1,12 @@
+
+File tests/strings_bad.as, Exeption at- B1: .string abcd
+       forgot the " sign in the start or the end of string data.
+
+File tests/strings_bad.as, Exeption at- B2: .string "Vsdfg" "dfgdf" "dfg
+       missing a comma between operators.
+
+File tests/strings_bad.as, Exeption at- B3: .string "bfddf
+       forgot the " sign in the start or the end of string data.
+
+File tests/strings_bad.as, Exeption at- B4: .string sdfsd"
+       forgot the " sign in the start or the end of string data.

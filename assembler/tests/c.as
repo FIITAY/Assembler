@@ -1,0 +1,3 @@
+STR: .string "abcdef"
+
+	stop
