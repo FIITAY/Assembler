@@ -22,7 +22,8 @@ to use the assembler you need .as files. for example if you have the file "A.as"
 this is case sensetive, the file have to be .as but when you are running the assembler you dont need to write .as.
 
 The assembler also support multiple files at the same time. for example if you have file "A.as" and "B.as" you can do:
-```./assembler A B 
+```
+./assembler A B 
 ```
 you can compile as many files as you need at the same time.
 
