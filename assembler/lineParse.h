@@ -18,7 +18,7 @@
 #define LABEL_MARKER ':' /*the marker of label is : at the end*/
 
 /*gets line of code and word array to return the machine code in, returnes in the int the number of words generated (L)*/
-int parseLine(char *, char *, Word **, Table *, DataTable *, int *, int *);
+int parseLine(char *, Word **, Table *, DataTable *, int *, int *);
 /*check if label is legal or not*/
 Exeption checkLable(char *, Table *);
 /*check the kind of line based on the first word*/

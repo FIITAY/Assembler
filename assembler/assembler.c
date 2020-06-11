@@ -50,12 +50,14 @@ void freeDataTables(DataTable *);
 /*this function is for debug only*/
 void printBinary(Word binaryCode[], int length);
 
-void exportExternalTable(Table extT, char *fileName);
-void exportEnteryTable(Table symT, char *fileName);
+void exportExternalTable(Table extT, char *fn);
+void exportEnteryTable(Table symT, char *fn);
 void exportBinaryTable(Word [], char *, int, int, int);
 
+char *filename;
+
 /*this function gets a file name and make the first and second loops*/
-void fileCompiler(char *fileName)
+void fileCompiler(char *fn)
 {
     char *fileWithExtention = NULL;
     int ret = SUCCESS;
@@ -67,8 +69,8 @@ void fileCompiler(char *fileName)
     DataTable dataTable;
     int IC, DC;
 
-    fileWithExtention = (char *)malloc((strlen(fileName) + 4)*sizeof(char)); /*malloc place for the file name*/
-    strcpy(fileWithExtention, fileName); /*copy the file name*/
+    fileWithExtention = (char *)malloc((strlen(fn) + 4)*sizeof(char)); /*malloc place for the file name*/
+    strcpy(fileWithExtention, fn); /*copy the file name*/
     strcat(fileWithExtention, ".as"); /*add the end .as to the file name at the end of the string*/
 
     /*open the file*/
@@ -79,12 +81,15 @@ void fileCompiler(char *fileName)
         return ;
     }
 
+    /*update the extern file name*/
+    filename = fileWithExtention;
+
     /*file open success*/
     symbolTable.head = NULL;
     externalTable.head = NULL;
     dataTable.head = NULL;
     /*do the first loop of the compile procidure over the file*/
-    ret  = doFirstLoop(fileWithExtention, fp, binaryCode, &symbolTable, &dataTable, &IC, &DC);
+    ret  = doFirstLoop(fp, binaryCode, &symbolTable, &dataTable, &IC, &DC);
     if(ret != ERROR_RETURN)/*do the secondLoop only if the first pass returned SUCCESS*/
     {
         /*reopen file at the start*/
@@ -96,7 +101,7 @@ void fileCompiler(char *fileName)
             return;
         }
         /*do the second loop of the compile procidure over the file*/
-        eRet  = doSecondLoop(fileWithExtention, fp, binaryCode, &symbolTable, &externalTable);
+        eRet  = doSecondLoop(fp, binaryCode, &symbolTable, &externalTable);
         fclose(fp);
     }
     /*if the two loops was finished whithout any errors, make the output files, else skip making the output files*/
@@ -105,9 +110,9 @@ void fileCompiler(char *fileName)
         /*for debug, print the binary*/
         printBinary(binaryCode, ret);
         /*export the files needed*/
-        exportBinaryTable(binaryCode, fileName, ret, IC, DC);
-        exportExternalTable(externalTable, fileName);
-        exportEnteryTable(symbolTable, fileName);
+        exportBinaryTable(binaryCode, fn, ret, IC, DC);
+        exportExternalTable(externalTable, fn);
+        exportEnteryTable(symbolTable, fn);
         /*need to make the export of the .ob file*/
     }/*if there was a errors dont make output files*/
 
@@ -148,15 +153,15 @@ void print_as_binary(unsigned int a)
     }
 }
 
-void exportBinaryTable(Word binaryCode[], char *fileName, int length, int IC, int DC)
+void exportBinaryTable(Word binaryCode[], char *fn, int length, int IC, int DC)
 {
     FILE *fp = NULL;
     char *fileWithExtention = NULL;
     int i;
     char out[3]; /*place for 2 chars and \0*/
     /*open file*/
-    fileWithExtention = (char *)malloc((strlen(fileName) + 4)*sizeof(char)); /*malloc place for the file name*/;
-    strcpy(fileWithExtention, fileName); /*copy the file name*/
+    fileWithExtention = (char *)malloc((strlen(fn) + 4)*sizeof(char)); /*malloc place for the file name*/;
+    strcpy(fileWithExtention, fn); /*copy the file name*/
     strcat(fileWithExtention, ".ob"); /*add the end .as to the file name at the end of the string*/
     fp = fopen(fileWithExtention, "w"); /*open the file as write mode*/
     if(fp == NULL)
@@ -176,7 +181,7 @@ void exportBinaryTable(Word binaryCode[], char *fileName, int length, int IC, in
 }
 
 /*this function gets externals table and print it into the file named <fileName>.ext*/
-void exportExternalTable(Table extT, char *fileName)
+void exportExternalTable(Table extT, char *fn)
 {
     TableRow *tr = extT.head;
     char *fileWithExtention = NULL;
@@ -186,8 +191,8 @@ void exportExternalTable(Table extT, char *fileName)
         if(fp == NULL)
         {
             /*open file*/
-            fileWithExtention = (char *)malloc((strlen(fileName) + 5)*sizeof(char)); /*malloc place for the file name*/;
-            strcpy(fileWithExtention, fileName); /*copy the file name*/
+            fileWithExtention = (char *)malloc((strlen(fn) + 5)*sizeof(char)); /*malloc place for the file name*/;
+            strcpy(fileWithExtention, fn); /*copy the file name*/
             strcat(fileWithExtention, ".ext"); /*add the end .as to the file name at the end of the string*/
             fp = fopen(fileWithExtention, "w"); /*open the file as write mode*/
             if(fp == NULL)
@@ -208,7 +213,7 @@ void exportExternalTable(Table extT, char *fileName)
 }
 
 /*this function gets the symbol table and if there are entery labels export them into <fileName>.ent*/
-void exportEnteryTable(Table symT, char *fileName)
+void exportEnteryTable(Table symT, char *fn)
 {
     FILE *fp = NULL;
     TableRow *tr = symT.head;
@@ -221,8 +226,8 @@ void exportEnteryTable(Table symT, char *fileName)
             if(fp == NULL)
             {
                 /*open file*/
-                fileWithExtention = (char *)malloc((strlen(fileName) + 5)*sizeof(char)); /*malloc place for the file name*/;
-                strcpy(fileWithExtention, fileName); /*copy the file name*/
+                fileWithExtention = (char *)malloc((strlen(fn) + 5)*sizeof(char)); /*malloc place for the file name*/;
+                strcpy(fileWithExtention, fn); /*copy the file name*/
                 strcat(fileWithExtention, ".ent"); /*add the end .as to the file name at the end of the string*/
                 fp = fopen(fileWithExtention, "w"); /*open the file into fp*/
                 if(fp == NULL)

@@ -19,7 +19,7 @@ void finishTable(Table *, int);
 void finishData(DataTable *, int *, Word []);
 
 /*do the first loop over the file fp*/
-int doFirstLoop(char *fileName, FILE *fp, Word binaryCode[], Table *symbolTable, DataTable *dataTable, int *instructCount, int *dataCount)
+int doFirstLoop(FILE *fp, Word binaryCode[], Table *symbolTable, DataTable *dataTable, int *instructCount, int *dataCount)
 {
     char line[MAX_CHARS_IN_LINE];
     int ret = SUCCESS; /*start the loop thinking that there wont be any errors*/
@@ -33,7 +33,7 @@ int doFirstLoop(char *fileName, FILE *fp, Word binaryCode[], Table *symbolTable,
         Word *parseOutput;
         if(comment(line) != VAL_TRUE)
         {
-            L = parseLine(fileName, line, &parseOutput,symbolTable, dataTable, &IC, &DC);
+            L = parseLine(line, &parseOutput,symbolTable, dataTable, &IC, &DC);
             if(L == ERROR_RETURN)
                 ret = ERROR_RETURN;/*random error because there was error in line*/
             else if(L != 0)

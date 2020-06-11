@@ -18,7 +18,7 @@ Exeption finishEncodinCode(char *, Word [], Table *, Table * ,int *);
 Exeption finishEntery(char *, Table *);
 
 /*this function gets opened file, binary code, symbol table and do the second loop over it*/
-Exeption doSecondLoop(char *fileName, FILE *fp, Word binaryCode[], Table *symbolTable, Table *externalTable)
+Exeption doSecondLoop(FILE *fp, Word binaryCode[], Table *symbolTable, Table *externalTable)
 {
     int IC = 0; /*step 1*/
     char line[MAX_CHARS_IN_LINE];
@@ -51,14 +51,14 @@ Exeption doSecondLoop(char *fileName, FILE *fp, Word binaryCode[], Table *symbol
                 /*step 6- finish encoding the entery into the symbolTable*/
                 currRet = finishEntery(strtok(NULL,"\n"), symbolTable);
                 if(currRet != SUCCESS) /*if thee was error print the error*/
-                    errorHandle(fileName, originalLine, currRet);
+                    errorHandle(originalLine, currRet);
             }
             if(kind == K_CODE) /*if the kind is code this is the parse*/
             {
                 /*step 7- finish the coding of the 2 and 3 words*/
                 currRet = finishEncodinCode(strtok(NULL,"\n"),binaryCode,symbolTable, externalTable ,&IC);
                 if(currRet != SUCCESS) /*if thee was error print the error*/
-                    errorHandle(fileName, originalLine, currRet);
+                    errorHandle(originalLine, currRet);
             }
             /*if kind is K_DATA \ K_EXTERN \ K_STRING or step 6 or step 9 go to here*/
         }

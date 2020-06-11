@@ -34,6 +34,9 @@ enum commands {OPCODE_MOV=0,
  OPCODE_RTS=14,
  OPCODE_STOP=15};
 
+ /*the file name will be updated for each file*/
+ extern char *filename;
+
 /*thous are the given addressing mode for parameters*/
 #define ADDR_MODE_IMIDIATE 1
 #define ADDR_MODE_DIRECT 3

@@ -1,7 +1,6 @@
-CFLAGS=-Wall -pedantic -ansi -MMD -MP
+CFLAGS=-Wall -pedantic -ansi
 
 OBJS = assembler.o base64.o error.o firstLoop.o lineParse.o secondLoop.o
-DEPS := $(OBJS:.o=.d)
 
 #compile command for mycomp
 assembler: $(OBJS)
@@ -13,9 +12,3 @@ assembler: $(OBJS)
 # cleanup clean:
 clean:
 	rm -f *.o *.d *.gch
-
-.PHONY: tests
-tests: assembler
-	./run_tests.sh
-
--include $(DEPS)

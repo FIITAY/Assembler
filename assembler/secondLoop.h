@@ -14,6 +14,6 @@
 #include "error.h"
 
 /*this function gets file and do the second loop over it*/
-Exeption doSecondLoop(char *,FILE *, Word [], Table *, Table *);
+Exeption doSecondLoop(FILE *, Word [], Table *, Table *);
 
 #endif

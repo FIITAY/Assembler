@@ -6,14 +6,17 @@
 
 /*includes that im using in this file*/
 #include "error.h"
+#include "consts.h"
 #include <stdio.h>
+
+extern char *filename;
 
 /*error handler- takes the line and the exep and output it in the following structure:
  Exeption at: LINE
         ERROR MESSAGE*/
-void errorHandle(char *fileName, char *line, Exeption exep)
+void errorHandle(char *line, Exeption exep)
 {
-    fprintf(stderr, "\nFile %s, Exeption at- %s", fileName, line);/*print the first line of the message*/
+    fprintf(stderr, "\nFile %s, Exeption at- %s", filename, line);/*print the first line of the message*/
     switch(exep)/*choose the rigth message for this exeption*/
     {
         case SUCCESS:

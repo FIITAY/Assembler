@@ -24,7 +24,7 @@ const char *SAVEDWORDS[] = {"mov", "cmp", "add", "sub", "not", "clr", "lea", "in
     "r1", "r2", "r3", "r4", "r5", "r6", "r7"};
 
 /*this function gets a line and output the parsing of it into the respective data struct, return value is L.*/
-int parseLine(char *fileName, char *line, Word **output, Table *symbolTable, DataTable *data, int *IC, int *DC)
+int parseLine(char *line, Word **output, Table *symbolTable, DataTable *data, int *IC, int *DC)
 {
     int L = 0;
     enum lineKind kind;
@@ -43,7 +43,7 @@ int parseLine(char *fileName, char *line, Word **output, Table *symbolTable, Dat
         if((ret = checkLable(label, symbolTable)) != SUCCESS)
         {
             /*the lable is not legal, make the returnes error and go to the finish proccess*/
-            errorHandle(fileName, originalLine, ret);
+            errorHandle(originalLine, ret);
             L= ERROR_RETURN;
             goto FINISH;
         }
@@ -76,7 +76,7 @@ int parseLine(char *fileName, char *line, Word **output, Table *symbolTable, Dat
                 ret = parseKindString(restOfLine, data, DC);
             if(ret != SUCCESS)/*if there was error parsing, return error and go to the finish proccess*/
             {
-                errorHandle(fileName, originalLine, ret);
+                errorHandle(originalLine, ret);
                 L = ERROR_RETURN;
                 goto FINISH;
             }
@@ -92,7 +92,7 @@ int parseLine(char *fileName, char *line, Word **output, Table *symbolTable, Dat
                 ret = parseExtern(restOfLine,symbolTable);/*parse the extern into the symboltable*/
                 if(ret != SUCCESS)/*if there was error parsing, return error and go to the finish proccess*/
                 {
-                    errorHandle(fileName, originalLine, ret);
+                    errorHandle(originalLine, ret);
                     L= ERROR_RETURN;
                     goto FINISH;
                 }
@@ -110,7 +110,7 @@ int parseLine(char *fileName, char *line, Word **output, Table *symbolTable, Dat
             ret = parseKindCode(word, restOfLine,output, &L);/*parse the command and put it inside output*/
             if(ret != SUCCESS)/*if there was error parsing, return error and go to the finish proccess*/
             {
-                errorHandle(fileName, originalLine, ret);
+                errorHandle(originalLine, ret);
                 L = ERROR_RETURN;
                 goto FINISH;
             }
@@ -122,7 +122,7 @@ int parseLine(char *fileName, char *line, Word **output, Table *symbolTable, Dat
         if(label != NULL)
         {
             /*there is label, return error*/
-            errorHandle(fileName, originalLine, LABEL_BEFORE_EMPTY_LINE);
+            errorHandle(originalLine, LABEL_BEFORE_EMPTY_LINE);
             L = ERROR_RETURN;
         }
     }
